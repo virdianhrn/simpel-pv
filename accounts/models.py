@@ -1,7 +1,14 @@
+import random, string
 from django.db import models
 from django.contrib.auth.models import User
 
 # NOTE: Setup MEDIA_ROOT
+def upload_to_foto(instance, filename):
+    id_pelatihan = instance.pelatihan.id
+    random_string = ''.join(random.choices(string.ascii_uppercase + string.digits, k=16))
+    file_ext = filename.split('.')[-1]
+    return f'dokumen/{id_pelatihan}/{instance.nama}{random_string}.{file_ext}'
+
 class Profile(models.Model):
     ADMIN = "AD"
     PENYELENGGARA = "PL"
