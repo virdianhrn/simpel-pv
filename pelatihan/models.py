@@ -3,6 +3,7 @@ import string
 from django.db import models
 from accounts.models import Profile
 
+# NOTE: Change temporary name
 NAMA_DOKUMEN_CHOICES = [
         ('01', 'DokumenO'),
         ('02', 'DokumenN'),
@@ -40,11 +41,9 @@ class Pelatihan(models.Model):
 def upload_to_dokumen(instance, _):
     id_pelatihan = instance.pelatihan.id
     random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
-    return f'media/dokumen/{id_pelatihan}/{instance.nama}{random_string}.pdf'
+    return f'dokumen/{id_pelatihan}/{instance.nama}{random_string}.pdf'
 
 
-# NOTE: Setup MEDIA_ROOT
-# NOTE: Change temporary name
 class PelatihanDokumen(models.Model):
     pelatihan = models.ForeignKey(Pelatihan, on_delete=models.CASCADE, 
                                   related_name='dokumen')
