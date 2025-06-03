@@ -1,20 +1,29 @@
 from .models import Pelatihan, PelatihanDokumen
+from .models import NAMA_DOKUMEN_CHOICES, STATUS_DOKUMEN_CHOICES
 from django import forms
 
 class PelatihanDokumenForm(forms.ModelForm):
+    nama = forms.ChoiceField(
+        choices=NAMA_DOKUMEN_CHOICES,
+        widget=forms.Select(attrs={'readonly': 'readonly'}),
+    )
+
+    status = forms.ChoiceField(
+        choices=STATUS_DOKUMEN_CHOICES,
+        widget=forms.Select(attrs={'readonly': 'readonly'}),
+    )
     class Meta:
         model = PelatihanDokumen
         fields = ['nama', 'file_url', 'status']
         widgets = {
-            'nama': forms.TextInput(attrs={'readonly': 'readonly'}),
             'file_url': forms.ClearableFileInput(attrs={
                 'onchange': 'this.form.submit();'
             }),
-            'status': forms.TextInput(attrs={'readonly': 'readonly'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['nama'].disabled = True
         self.fields['status'].disabled = True
 
 PelatihanDokumenFormSet = forms.inlineformset_factory(

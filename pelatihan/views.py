@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Pelatihan, PelatihanDokumen
+from .models import Pelatihan
 from .forms import PelatihanDokumenFormSet
 
 def detail(request, pelatihan_id):
