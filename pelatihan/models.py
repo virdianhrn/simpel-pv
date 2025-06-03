@@ -5,22 +5,28 @@ from accounts.models import Profile
 
 # NOTE: Change temporary name
 NAMA_DOKUMEN_CHOICES = [
-        ('01', 'DokumenO'),
-        ('02', 'DokumenN'),
-        ('03', 'DokumenM'),
-        ('04', 'DokumenL'),
-        ('05', 'DokumenK'),
-        ('06', 'DokumenJ'),
-        ('07', 'DokumenI'),
-        ('08', 'DokumenH'),
-        ('09', 'DokumenG'),
-        ('10', 'DokumenF'),
-        ('11', 'DokumenE'),
-        ('12', 'DokumenD'),
-        ('13', 'DokumenC'),
-        ('14', 'DokumenB'),
-        ('15', 'DokumenA'),
+        ('00', 'DokumenO'),
+        ('01', 'DokumenN'),
+        ('02', 'DokumenM'),
+        ('03', 'DokumenL'),
+        ('04', 'DokumenK'),
+        ('05', 'DokumenJ'),
+        ('06', 'DokumenI'),
+        ('07', 'DokumenH'),
+        ('08', 'DokumenG'),
+        ('09', 'DokumenF'),
+        ('10', 'DokumenE'),
+        ('11', 'DokumenD'),
+        ('12', 'DokumenC'),
+        ('13', 'DokumenB'),
+        ('14', 'DokumenA'),
     ]
+
+def get_list_nama_dokumen():
+    return [code for code, _ in NAMA_DOKUMEN_CHOICES]
+
+def get_label_nama(nama):
+    return dict(NAMA_DOKUMEN_CHOICES).get(nama)
 
 class Pelatihan(models.Model):
     judul = models.CharField(max_length=255, verbose_name="Judul Pelatihan")
@@ -33,28 +39,48 @@ class Pelatihan(models.Model):
     def persentase_progress(self):
         uploaded = self.dokumen.count()
         total = len(NAMA_DOKUMEN_CHOICES)
-        return int((uploaded / total) * 100) if total > 0 else 0
+        return int((uploaded / total) * 100)
     
     def __str__(self):
         return f"{self.judul} - {self.pic}"
+
+
 
 def upload_to_dokumen(instance, _):
     id_pelatihan = instance.pelatihan.id
     random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
     return f'dokumen/{id_pelatihan}/{instance.nama}{random_string}.pdf'
 
+STATUS_DOKUMEN_CHOICES = [
+        ('0', 'Kosong'),
+        ('1', 'Sedang Diverifikasi'),
+        ('2', 'Perlu Revisi'),
+        ('3', 'Terverifikasi'),
+]
+
+def get_label_status(nama):
+    return dict(STATUS_DOKUMEN_CHOICES).get(nama)
 
 class PelatihanDokumen(models.Model):
     pelatihan = models.ForeignKey(Pelatihan, on_delete=models.CASCADE, 
                                   related_name='dokumen')
+    
     nama = models.CharField(
         max_length=2,
         choices=NAMA_DOKUMEN_CHOICES,
         verbose_name="Jenis Dokumen"
     )
-    uploaded = models.FileField(upload_to=upload_to_dokumen, verbose_name="Dokumen yang Diupload")
+
+    status = models.CharField(
+        max_length=1,
+        choices=STATUS_DOKUMEN_CHOICES,
+        verbose_name="Status Dokumen",
+        default = '0'
+    )
+
+    file_url = models.FileField(upload_to=upload_to_dokumen, verbose_name="URL Dokumen")
     
     def __str__(self):
-        label =  dict(NAMA_DOKUMEN_CHOICES).get(self.nama)
-        return f"{label} - {self.pelatihan.judul}"
+        label =  get_label_nama(self.nama)
+        return f"{self.nama} {label} - {self.pelatihan.judul}"
 
