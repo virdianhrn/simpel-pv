@@ -3,13 +3,37 @@ import string
 from django.db import models
 from accounts.models import Profile
 
+NAMA_DOKUMEN_CHOICES = [
+        ('01', 'DokumenO'),
+        ('02', 'DokumenN'),
+        ('03', 'DokumenM'),
+        ('04', 'DokumenL'),
+        ('05', 'DokumenK'),
+        ('06', 'DokumenJ'),
+        ('07', 'DokumenI'),
+        ('08', 'DokumenH'),
+        ('09', 'DokumenG'),
+        ('10', 'DokumenF'),
+        ('11', 'DokumenE'),
+        ('12', 'DokumenD'),
+        ('13', 'DokumenC'),
+        ('14', 'DokumenB'),
+        ('15', 'DokumenA'),
+    ]
+
 class Pelatihan(models.Model):
     judul = models.CharField(max_length=255, verbose_name="Judul Pelatihan")
-    pic = models.ForeignKey(Profile, verbose_name="PIC Pelatihan", on_delete=models.CASCADE)
+    pic = models.ForeignKey(Profile, verbose_name="PIC Pelatihan", 
+                            on_delete=models.CASCADE, related_name='pelatihan')
     tanggal_mulai = models.DateField(verbose_name="Tanggal Mulai Pelatihan")
     tanggal_selesai = models.DateField(verbose_name="Tanggal Selesai Pelatihan")
     durasi = models.PositiveSmallIntegerField(verbose_name="Durasi Pelatihan") # Dalam JP
 
+    def persentase_progress(self):
+        uploaded = self.dokumen.count()
+        total = len(NAMA_DOKUMEN_CHOICES)
+        return int((uploaded / total) * 100) if total > 0 else 0
+    
     def __str__(self):
         return f"{self.judul} - {self.pic}"
 
@@ -18,36 +42,20 @@ def upload_to_dokumen(instance, _):
     random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
     return f'media/dokumen/{id_pelatihan}/{instance.nama}{random_string}.pdf'
 
+
 # NOTE: Setup MEDIA_ROOT
 # NOTE: Change temporary name
 class PelatihanDokumen(models.Model):
-    NAMA_DOKUMEN_CHOICES = [
-        ('01', '1-Dokumen1'),
-        ('02', '2-Dokumen2'),
-        ('03', '3-Dokumen3'),
-        ('04', '4-Dokumen4'),
-        ('05', '5-Dokumen5'),
-        ('06', '6-Dokumen6'),
-        ('07', '7-Dokumen7'),
-        ('08', '8-Dokumen8'),
-        ('09', '9-Dokumen9'),
-        ('10', '10-Dokumen10'),
-        ('11', '11-Dokumen11'),
-        ('12', '12-Dokumen12'),
-        ('13', '13-Dokumen13'),
-        ('14', '14-Dokumen14'),
-        ('15', '15-Dokumen15'),
-    ]
-
-    pelatihan = models.ForeignKey(Pelatihan, on_delete=models.CASCADE, related_name='dokumen')
+    pelatihan = models.ForeignKey(Pelatihan, on_delete=models.CASCADE, 
+                                  related_name='dokumen')
     nama = models.CharField(
         max_length=2,
         choices=NAMA_DOKUMEN_CHOICES,
         verbose_name="Jenis Dokumen"
     )
-    file = models.FileField(upload_to=upload_to_dokumen)
+    uploaded = models.FileField(upload_to=upload_to_dokumen, verbose_name="Dokumen yang Diupload")
     
     def __str__(self):
-        label =  dict(self.NAMA_DOKUMEN_CHOICES).get(self.nama)
+        label =  dict(NAMA_DOKUMEN_CHOICES).get(self.nama)
         return f"{label} - {self.pelatihan.judul}"
 
