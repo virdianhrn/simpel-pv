@@ -15,7 +15,7 @@ class Pelatihan(models.Model):
 
 def upload_to_dokumen(instance, _):
     id_pelatihan = instance.pelatihan.id
-    random_string = ''.join(random.choices(string.ascii_uppercase + string.digits, k=16))
+    random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
     return f'media/dokumen/{id_pelatihan}/{instance.nama}{random_string}.pdf'
 
 # NOTE: Setup MEDIA_ROOT
@@ -48,6 +48,6 @@ class PelatihanDokumen(models.Model):
     file = models.FileField(upload_to=upload_to_dokumen)
     
     def __str__(self):
-        label = self.NAMA_DOKUMEN_CHOICES.get(self.nama)
+        label =  dict(self.NAMA_DOKUMEN_CHOICES).get(self.nama)
         return f"{label} - {self.pelatihan.judul}"
 
