@@ -68,7 +68,7 @@ class PelatihanDokumen(models.Model):
     nama = models.CharField(
         max_length=2,
         choices=NAMA_DOKUMEN_CHOICES,
-        verbose_name="Jenis Dokumen"
+        verbose_name="Jenis Dokumen",
     )
 
     status = models.CharField(
@@ -78,7 +78,11 @@ class PelatihanDokumen(models.Model):
         default = '0'
     )
 
-    file_url = models.FileField(upload_to=upload_to_dokumen, verbose_name="URL Dokumen")
+    file_url = models.FileField(
+        upload_to=upload_to_dokumen, 
+        verbose_name="URL Dokumen",
+        blank=True
+    )
     
     def __str__(self):
         label =  get_label_nama(self.nama)
