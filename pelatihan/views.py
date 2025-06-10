@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Pelatihan
-from .forms import PenambahanDokumenFormSet
+from .forms import PenambahanDokumenFormSet, PelatihanForm
 
 def detail(request, pelatihan_id):
     pelatihan = get_object_or_404(Pelatihan, id=pelatihan_id)
@@ -22,8 +22,17 @@ def detail(request, pelatihan_id):
     return render(request, 'detail_pelatihan.html', context)
 
 def edit(request, pelatihan_id):
-    pelatihan = Pelatihan.objects.get(pk=pelatihan_id)
+    pelatihan = get_object_or_404(Pelatihan, id=pelatihan_id)
+    if request.method == 'POST':
+        form = PelatihanForm(request.POST, instance=pelatihan)
+        if form.is_valid():
+            form.save()
+            return redirect('detail', pelatihan_id=pelatihan.id)
+    else:
+        form = PelatihanForm(instance=pelatihan)
+  
     context = {
-        'pelatihan': pelatihan
+        'pelatihan': pelatihan,
+        'form': form
     }
-    return HttpResponse(f"You're editing a pelatihan {context['pelatihan'].judul}.")
+    return render(request, 'edit_pelatihan.html', context)

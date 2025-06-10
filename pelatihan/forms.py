@@ -2,6 +2,21 @@ from .models import Pelatihan, PelatihanDokumen
 from .models import NAMA_DOKUMEN_CHOICES, STATUS_DOKUMEN_CHOICES
 from django import forms
 
+class PelatihanForm(forms.ModelForm):
+    tanggal_mulai = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+    
+    tanggal_selesai = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+    class Meta:
+        model = Pelatihan
+        fields = ['judul', 'tanggal_mulai', 'tanggal_selesai', 'durasi']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
 class PenambahanDokumenForm(forms.ModelForm):
     nama = forms.ChoiceField(
         choices=NAMA_DOKUMEN_CHOICES,
@@ -16,7 +31,7 @@ class PenambahanDokumenForm(forms.ModelForm):
         model = PelatihanDokumen
         fields = ['nama', 'file_url', 'status', 'notes']
         widgets = {
-            'file_url': forms.FileInput(attrs={
+            'file_url': forms.ClearableFileInput(attrs={
                 'onchange': 'this.form.submit();'
             }),
         }
