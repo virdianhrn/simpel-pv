@@ -16,7 +16,7 @@ class PelatihanDokumenForm(forms.ModelForm):
         model = PelatihanDokumen
         fields = ['nama', 'file_url', 'status']
         widgets = {
-            'file_url': forms.FileField(attrs={
+            'file_url': forms.FileInput(attrs={
                 'onchange': 'this.form.submit();'
             }),
         }
