@@ -1,0 +1,14 @@
+<h1>Pemasukan Dokumen Pelatihan for {{ pelatihan.judul }} dengan Progress {{ progress }}%</h1>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    <table>
+        {% for form in formset %}
+            <tr>
+                {% if form.has_changed or form.instance.pk %}
+                    {{ form }}
+                {% endif %}
+            </tr>
+        {% endfor %}
+    </table>
+</form>

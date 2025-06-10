@@ -1,0 +1,8 @@
+<h1>Edit Pelatihan for {{ form.judul }}</h1>
+<form method="post">
+    {% csrf_token %}
+    {% if form.has_changed or form.instance.pk %}
+        {{ form }}
+    {% endif %}
+    <button type="submit">Submit</button>
+</form>
