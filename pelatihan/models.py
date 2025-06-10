@@ -1,6 +1,7 @@
 import random
 import string
 from django.db import models
+from django.core.exceptions import ValidationError
 from accounts.models import Profile
 
 # NOTE: Change temporary name
@@ -25,9 +26,6 @@ NAMA_DOKUMEN_CHOICES = [
 def get_list_nama_dokumen():
     return [code for code, _ in NAMA_DOKUMEN_CHOICES]
 
-def get_label_nama(nama):
-    return dict(NAMA_DOKUMEN_CHOICES).get(nama)
-
 class Pelatihan(models.Model):
     judul = models.CharField(max_length=255, verbose_name="Judul Pelatihan")
     pic = models.ForeignKey(Profile, verbose_name="PIC Pelatihan", 
@@ -36,6 +34,11 @@ class Pelatihan(models.Model):
     tanggal_selesai = models.DateField(verbose_name="Tanggal Selesai Pelatihan")
     durasi = models.PositiveSmallIntegerField(verbose_name="Durasi Pelatihan") # Dalam JP
 
+    def clean(self):
+        super().clean()
+        if self.tanggal_selesai and self.tanggal_mulai and self.tanggal_selesai <= self.tanggal_mulai:
+            raise ValidationError("Tanggal selesai harus setelah tanggal mulai")
+           
     def persentase_progress(self):
         uploaded = self.dokumen.count()
         total = len(NAMA_DOKUMEN_CHOICES)
@@ -57,9 +60,6 @@ STATUS_DOKUMEN_CHOICES = [
         ('2', 'Perlu Revisi'),
         ('3', 'Terverifikasi'),
 ]
-
-def get_label_status(nama):
-    return dict(STATUS_DOKUMEN_CHOICES).get(nama)
 
 class PelatihanDokumen(models.Model):
     pelatihan = models.ForeignKey(Pelatihan, on_delete=models.CASCADE, 
@@ -83,8 +83,14 @@ class PelatihanDokumen(models.Model):
         verbose_name="URL Dokumen",
         blank=True
     )
+
+    notes = models.CharField(
+        max_length=255,
+        verbose_name="Notes Admin",
+        blank=True
+    )
     
     def __str__(self):
-        label =  get_label_nama(self.nama)
+        label =  dict(NAMA_DOKUMEN_CHOICES).get(self.nama)
         return f"{self.nama} {label} - {self.pelatihan.judul}"
 

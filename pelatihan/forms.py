@@ -16,7 +16,7 @@ class PelatihanDokumenForm(forms.ModelForm):
         model = PelatihanDokumen
         fields = ['nama', 'file_url', 'status']
         widgets = {
-            'file_url': forms.ClearableFileInput(attrs={
+            'file_url': forms.FileField(attrs={
                 'onchange': 'this.form.submit();'
             }),
         }
