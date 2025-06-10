@@ -36,11 +36,12 @@ class Pelatihan(models.Model):
 
     def clean(self):
         super().clean()
-        if self.tanggal_selesai and self.tanggal_mulai and self.tanggal_selesai <= self.tanggal_mulai:
+        if self.tanggal_selesai and self.tanggal_mulai and self.tanggal_selesai < self.tanggal_mulai:
             raise ValidationError("Tanggal selesai harus setelah tanggal mulai")
-           
+    
+    #NOTE: No hard code please 
     def persentase_progress(self):
-        uploaded = self.dokumen.count()
+        uploaded = self.dokumen.filter(status='3').count()
         total = len(NAMA_DOKUMEN_CHOICES)
         return int((uploaded / total) * 100)
     

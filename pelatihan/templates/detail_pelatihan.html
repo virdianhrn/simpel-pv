@@ -1,4 +1,4 @@
-<h1>Update Pelatihan for {{ pelatihan.judul }}</h1>
+<h1>Pemasukan Dokumen Pelatihan for {{ pelatihan.judul }} dengan Progress {{ progress }}%</h1>
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ formset.management_form }}
