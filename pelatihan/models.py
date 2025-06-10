@@ -39,9 +39,8 @@ class Pelatihan(models.Model):
         if self.tanggal_selesai and self.tanggal_mulai and self.tanggal_selesai < self.tanggal_mulai:
             raise ValidationError("Tanggal selesai harus setelah tanggal mulai")
     
-    #NOTE: No hard code please 
     def persentase_progress(self):
-        uploaded = self.dokumen.filter(status='3').count()
+        uploaded = self.dokumen.filter(status=STATUS_DOKUMEN_TERVERIFIKASI).count()
         total = len(NAMA_DOKUMEN_CHOICES)
         return int((uploaded / total) * 100)
     
@@ -55,11 +54,16 @@ def upload_to_dokumen(instance, _):
     random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
     return f'dokumen/{id_pelatihan}/{instance.nama}{random_string}.pdf'
 
+STATUS_DOKUMEN_KOSONG = '0'
+STATUS_DOKUMEN_SEDANG_VERIFIKASI = '1'
+STATUS_DOKUMEN_PERLU_REVISI = '2'
+STATUS_DOKUMEN_TERVERIFIKASI = '3'
+
 STATUS_DOKUMEN_CHOICES = [
-        ('0', 'Kosong'),
-        ('1', 'Sedang Diverifikasi'),
-        ('2', 'Perlu Revisi'),
-        ('3', 'Terverifikasi'),
+        (STATUS_DOKUMEN_KOSONG, 'Kosong'),
+        (STATUS_DOKUMEN_SEDANG_VERIFIKASI, 'Sedang Diverifikasi'),
+        (STATUS_DOKUMEN_PERLU_REVISI, 'Perlu Revisi'),
+        (STATUS_DOKUMEN_TERVERIFIKASI, 'Terverifikasi'),
 ]
 
 class PelatihanDokumen(models.Model):

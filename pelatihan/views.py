@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Pelatihan
+from .models import STATUS_DOKUMEN_SEDANG_VERIFIKASI, Pelatihan
 from .forms import PenambahanDokumenFormSet, PelatihanForm
 
 def detail(request, pelatihan_id):
@@ -9,6 +9,9 @@ def detail(request, pelatihan_id):
     if request.method == 'POST':
         formset = PenambahanDokumenFormSet(request.POST, request.FILES, instance=pelatihan)
         if formset.is_valid():
+            for form in formset:
+                if 'file_url' in form.changed_data:
+                    form.instance.status = STATUS_DOKUMEN_SEDANG_VERIFIKASI
             formset.save()
             return redirect('detail', pelatihan_id=pelatihan.id)
     else:
