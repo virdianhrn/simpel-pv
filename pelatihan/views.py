@@ -1,18 +1,18 @@
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Pelatihan
-from .forms import PelatihanDokumenFormSet
+from .forms import PenambahanDokumenFormSet
 
 def detail(request, pelatihan_id):
     pelatihan = get_object_or_404(Pelatihan, id=pelatihan_id)
     
     if request.method == 'POST':
-        formset = PelatihanDokumenFormSet(request.POST, request.FILES, instance=pelatihan)
+        formset = PenambahanDokumenFormSet(request.POST, request.FILES, instance=pelatihan)
         if formset.is_valid():
             formset.save()
             return redirect('detail', pelatihan_id=pelatihan.id)
     else:
-        formset = PelatihanDokumenFormSet(instance=pelatihan)
+        formset = PenambahanDokumenFormSet(instance=pelatihan)
   
     context = {
         'pelatihan': pelatihan,

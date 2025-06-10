@@ -2,7 +2,7 @@ from .models import Pelatihan, PelatihanDokumen
 from .models import NAMA_DOKUMEN_CHOICES, STATUS_DOKUMEN_CHOICES
 from django import forms
 
-class PelatihanDokumenForm(forms.ModelForm):
+class PenambahanDokumenForm(forms.ModelForm):
     nama = forms.ChoiceField(
         choices=NAMA_DOKUMEN_CHOICES,
         widget=forms.Select(attrs={'readonly': 'readonly'}),
@@ -14,7 +14,7 @@ class PelatihanDokumenForm(forms.ModelForm):
     )
     class Meta:
         model = PelatihanDokumen
-        fields = ['nama', 'file_url', 'status']
+        fields = ['nama', 'file_url', 'status', 'notes']
         widgets = {
             'file_url': forms.FileInput(attrs={
                 'onchange': 'this.form.submit();'
@@ -25,11 +25,12 @@ class PelatihanDokumenForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['nama'].disabled = True
         self.fields['status'].disabled = True
+        self.fields['notes'].disabled = True
 
-PelatihanDokumenFormSet = forms.inlineformset_factory(
+PenambahanDokumenFormSet = forms.inlineformset_factory(
     Pelatihan,
     PelatihanDokumen,
-    form=PelatihanDokumenForm,
+    form=PenambahanDokumenForm,
     extra=0,
     can_delete=False,
 )
