@@ -1,14 +1,55 @@
-<h1>Pemasukan Dokumen Pelatihan for {{ pelatihan.judul }} dengan Progress {{ progress }}%</h1>
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ formset.management_form }}
-    <table>
-        {% for form in formset %}
-            <tr>
-                {% if form.has_changed or form.instance.pk %}
-                    {{ form }}
-                {% endif %}
-            </tr>
-        {% endfor %}
-    </table>
-</form>
+{% extends 'base.html' %}
+
+{% block title %} Daftar Log {% endblock title%}
+
+{% block navbar %}
+{% with variant='light' %}
+{{ block.super }}
+{% endwith %}
+{% endblock navbar %}
+
+{% block content %}
+
+
+<div class="page-header pt-8 pb-12 bg-white-blue">
+    <div class="container">
+        <h2>Pemasukan Dokumen Pelatihan for {{ pelatihan.judul }} dengan Progress {{ progress }}%</h2>
+        <div class="card mb-4">
+            <div class="card-body px-0 pt-0 pb-2">
+                <div class="table-responsive p-0">
+                    <form method="post" enctype="multipart/form-data">
+                        <table class="table align-items-center mb-0" aria-label="Dashboard Evaluator">
+                            <thead>
+                                <tr>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                                        scope="col">Nomor</th>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                                        scope="col">Nama Dokumen</th>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                                        scope="col">Aksi</th>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                                        scope="col">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% csrf_token %}
+                                {{ formset.management_form }}
+                                {% for form in formset %}
+                                <tr>
+                                    <td class="ps-sm-4 ps-3 text-sm font-weight-bold">{{ form.nama }}</td>
+                                    <td class="ps-sm-4 ps-3 text-sm font-weight-bold">{{ form.nama }}</td>
+                                    <td class="ps-sm-4 ps-3 text-sm font-weight-bold">{{ form.file_url }}</td>
+                                    <td class="ps-sm-4 ps-3 text-sm font-weight-bold">{{ form.status }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock content %}
