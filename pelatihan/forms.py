@@ -18,29 +18,14 @@ class PelatihanForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
 class PenambahanDokumenForm(forms.ModelForm):
-    nama = forms.ChoiceField(
-        choices=NAMA_DOKUMEN_CHOICES,
-        widget=forms.Select(attrs={'readonly': 'readonly'}),
-    )
-
-    status = forms.ChoiceField(
-        choices=STATUS_DOKUMEN_CHOICES,
-        widget=forms.Select(attrs={'readonly': 'readonly'}),
-    )
     class Meta:
         model = PelatihanDokumen
-        fields = ['nama', 'file_url', 'status', 'notes']
+        fields = ['file_url']
         widgets = {
-            'file_url': forms.ClearableFileInput(attrs={
+            'file_url': forms.FileInput(attrs={
                 'onchange': 'this.form.submit();'
             }),
         }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['nama'].disabled = True
-        self.fields['status'].disabled = True
-        self.fields['notes'].disabled = True
 
 PenambahanDokumenFormSet = forms.inlineformset_factory(
     Pelatihan,
