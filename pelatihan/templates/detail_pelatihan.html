@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %} Manajemen Pelatihan {% endblock title%}
+{% block title %} Manajemen Pelatihan {% endblock title %}
 
 {% block navbar %}
 {% with variant='light' %}
@@ -25,7 +25,7 @@
                     {% csrf_token %}
                     {{ formset.management_form }}
                     <div class="table-responsive p-0">
-                        <table class="table align-items-center mb-0" aria-label="Dashboard Evaluator">
+                        <table class="table table-striped table-bordered align-items-center mb-0" aria-label="Detail Pelatihan">
                             <thead>
                                 <tr>
                                     <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
@@ -36,6 +36,8 @@
                                         scope="col">Aksi</th>
                                     <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
                                         scope="col">Status</th>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                                        scope="col">Notes Admin</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -44,18 +46,39 @@
                                     {{ form.id }}
                                     <td class="ps-sm-4 ps-3 text-sm font-weight-bold">{{ forloop.counter }}</td>
                                     <td class="ps-sm-4 ps-3 text-sm font-weight-bold">{{ form.instance.get_nama_display }}</td>
-                                    <td class="ps-sm-4 ps-3 text-sm font-weight-bold">
+                                    <td class="d-flex justify-content-between ps-sm-4 ps-3 text-sm font-weight-bold">
                                         {% if form.instance.file_url %}
-                                            <a href="{{ form.instance.file_url.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Lihat File Terunggah</a>
+                                            <a href="{{ form.instance.file_url.url }}" target="_blank" class="btn btn-sm btn-secondary">
+                                                <i class="fa-solid fa-eye"></i> Lihat
+                                            </a>
                                         {% else %}
-                                            <span class="btn btn-sm btn-outline-primary" disabled>Belum Diunggah</span>
+                                            <a class="btn btn-sm btn-secondary disabled">
+                                                <i class="fa-solid fa-eye"></i> Lihat
+                                            </a>
                                         {% endif %}
-                                        <label for="{{ form.file_url.id_for_label }}" class="btn btn-sm btn-outline-primary custom-file-label">
-                                            Pilih File
-                                        </label>
+
                                         {{ form.file_url }}
+
+                                        <label for="{{ form.file_url.id_for_label }}" class="btn btn-sm btn-primary custom-file-label">
+                                            <i class="fa-solid fa-upload"></i> Unggah
+                                        </label>
+                                        
+                                        <form method="post" action="#">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="form_index" value="{{ form.instance.id }}">
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="fa-solid fa-xmark"></i> Skip
+                                            </button>
+                                        </form>
                                     </td>
                                     <td class="ps-sm-4 ps-3 text-sm font-weight-bold">{{ form.instance.get_status_display }}</td>
+                                    <td class="ps-sm-4 ps-3 text-sm font-weight-bold">
+                                        {% if form.instance.notes_admin %}
+                                            {{ form.instance.get_notes.display }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
                                 </tr>
                                 {% endfor %}
                 </form>

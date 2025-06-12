@@ -1,5 +1,6 @@
 from .models import Pelatihan, PelatihanDokumen
 from django import forms
+from django.core.exceptions import ValidationError
 
 class PelatihanForm(forms.ModelForm):
     tanggal_mulai = forms.DateField(
@@ -22,9 +23,9 @@ class PenambahanDokumenForm(forms.ModelForm):
         fields = ['file_url']
         widgets = {
             'file_url': forms.FileInput(attrs={
-                'class': 'custom-file-input',
                 'style': 'display:none;',
-                'onchange': 'this.form.submit();'
+                'onchange': 'this.form.submit();',
+                'accept': '.pdf'
             }),
         }
 
