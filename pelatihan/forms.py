@@ -1,5 +1,4 @@
 from .models import Pelatihan, PelatihanDokumen
-from .models import NAMA_DOKUMEN_CHOICES, STATUS_DOKUMEN_CHOICES
 from django import forms
 
 class PelatihanForm(forms.ModelForm):
@@ -23,6 +22,8 @@ class PenambahanDokumenForm(forms.ModelForm):
         fields = ['file_url']
         widgets = {
             'file_url': forms.FileInput(attrs={
+                'class': 'custom-file-input',
+                'style': 'display:none;',
                 'onchange': 'this.form.submit();'
             }),
         }
