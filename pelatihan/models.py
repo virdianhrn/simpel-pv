@@ -4,23 +4,22 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from accounts.models import Profile
 
-# NOTE: Change temporary name
 NAMA_DOKUMEN_CHOICES = [
-        ('00', 'DokumenO'),
-        ('01', 'DokumenN'),
-        ('02', 'DokumenM'),
-        ('03', 'DokumenL'),
-        ('04', 'DokumenK'),
-        ('05', 'DokumenJ'),
-        ('06', 'DokumenI'),
-        ('07', 'DokumenH'),
-        ('08', 'DokumenG'),
-        ('09', 'DokumenF'),
-        ('10', 'DokumenE'),
-        ('11', 'DokumenD'),
-        ('12', 'DokumenC'),
-        ('13', 'DokumenB'),
-        ('14', 'DokumenA'),
+        ('00', 'Daftar Riwayat Hidup Peserta'),
+        ('01', 'Nominatif Peserta'),
+        ('02', 'Daftar Hadir Peserta'),
+        ('03', 'Daftar Hadir Instruktur'),
+        ('04', 'Jadwal Pelatihan'),
+        ('05', 'Daftar Jam Mengajar Instruktur'),
+        ('06', 'Daftar Nilai Akhir'),
+        ('07', 'Tanda Terima ATK Peserta + ID Card'),
+        ('08', 'Tanda Terima Pakaian Kerja/Kaos Olahraga+Training'),
+        ('09', 'Tanda Terima Sepatu Kerja'),
+        ('10', 'Tanda Terima Modul'),
+        ('11', 'Tanda Terima Bahan Pelatihan'),
+        ('12', 'Tanda Terima Konsumsi'),
+        ('13', 'Fotocopy Sertifikat Pelatihan'),
+        ('14', 'Dokumentasi Kegiatan'),
     ]
 
 def get_list_nama_dokumen():

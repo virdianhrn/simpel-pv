@@ -63,9 +63,8 @@
                                             <i class="fa-solid fa-upload"></i> Unggah
                                         </label>
                                         
-                                        <form method="post" action="#">
+                                        <form method="post" action="{% url 'skip_document' pelatihan.id form.instance.id %}">
                                             {% csrf_token %}
-                                            <input type="hidden" name="form_index" value="{{ form.instance.id }}">
                                             <button type="submit" class="btn btn-danger btn-sm">
                                             <i class="fa-solid fa-xmark"></i> Skip
                                             </button>

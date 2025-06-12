@@ -1,7 +1,8 @@
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import STATUS_DOKUMEN_SEDANG_VERIFIKASI, Pelatihan
+from .models import STATUS_DOKUMEN_SEDANG_VERIFIKASI, Pelatihan, PelatihanDokumen
 from .forms import PenambahanDokumenFormSet, PelatihanForm
+from django.core.files.base import ContentFile
 
 def detail(request, pelatihan_id):
     pelatihan = get_object_or_404(Pelatihan, id=pelatihan_id)
@@ -39,3 +40,17 @@ def edit(request, pelatihan_id):
         'form': form
     }
     return render(request, 'edit_pelatihan.html', context)
+
+def skip_document(request, pelatihan_id, document_id):
+    pelatihan = get_object_or_404(Pelatihan, pk=pelatihan_id)
+
+    if request.method == 'POST':
+        document = get_object_or_404(PelatihanDokumen, pk=document_id)
+        with open(r'media\dokumen\blank.pdf', 'rb') as f:
+            document.status = STATUS_DOKUMEN_SEDANG_VERIFIKASI
+            document.file_url.save('blank.pdf', ContentFile(f.read()))
+
+        document.save()
+        return redirect('detail', pelatihan_id=pelatihan.id)
+
+    return redirect('detail', pelatihan_id=pelatihan.id)
