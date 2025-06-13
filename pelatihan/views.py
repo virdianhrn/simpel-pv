@@ -20,7 +20,6 @@ def detail(request, pelatihan_id):
   
     context = {
         'pelatihan': pelatihan,
-        'progress': pelatihan.persentase_progress(),
         'formset': formset
     }
     return render(request, 'detail_pelatihan.html', context)

@@ -13,9 +13,26 @@
 <div class="container sticky-top">
     <div class="card mb-4">
         <div class="card-body">
-            <h5 class="card-title">Sticky Card</h5>
-            <p class="card-text">I will stay at the top when you scroll!</p>
-            
+            <div class="d-flex justify-content-evenly flex-wrap gap-4 mb-3 text-lg">
+                <div><strong>Nama:</strong> {{ pelatihan.judul }}</div>
+                <div><strong>Tanggal Mulai:</strong> {{ pelatihan.tanggal_mulai|date:"d M Y" }}</div>
+                <div><strong>Tanggal Selesai:</strong> {{ pelatihan.tanggal_selesai|date:"d M Y" }}</div>
+                <div><strong>Durasi:</strong> {{ pelatihan.durasi }} Hari</div>
+            </div>
+
+            <h6 class="mt-4 mb-2">Progress Pelatihan: {{ pelatihan.persentase_progress }}%</h6>
+            <div class="progress" style="height: 25px;"> {# Adjust height as needed #}
+                <div 
+                    class="progress-bar bg-success" 
+                    role="progressbar" 
+                    style="width: {{ pelatihan.persentase_progress }}%;" 
+                    aria-valuenow="{{ pelatihan.persentase_progress }}" 
+                    aria-valuemin="0" 
+                    aria-valuemax="100"
+                >
+                    {{ pelatihan.persentase_progress }}%
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -50,13 +67,13 @@
                                 {{ form.id }}
                                 <td class="ps-sm-4 ps-3 text-sm font-weight-bold">{{ forloop.counter }}</td>
                                 <td class="ps-sm-4 ps-3 text-sm font-weight-bold">{{ form.instance.get_nama_display }}</td>
-                                <td class="d-flex align-items-center justify-content-between text-sm font-weight-bold">
+                                <td class="d-flex justify-content-evenly align-items-center justify-content-between text-sm font-weight-bold">
                                     {% if form.instance.file_url %}
-                                        <a href="{{ form.instance.file_url.url }}" target="_blank" class="btn btn-sm btn-secondary mt-3">
+                                        <a href="{{ form.instance.file_url.url }}" target="_blank" class="btn btn-sm btn-warning mt-3">
                                             <i class="fa-solid fa-eye"></i> Lihat
                                         </a>
                                     {% else %}
-                                        <a class="btn btn-sm btn-secondary disabled mt-3">
+                                        <a class="btn btn-sm btn-warning disabled mt-3">
                                             <i class="fa-solid fa-eye"></i> Lihat
                                         </a>
                                     {% endif %}
