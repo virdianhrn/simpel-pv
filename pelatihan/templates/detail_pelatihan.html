@@ -9,19 +9,19 @@
 {% endblock navbar %}
 
 {% block page_header_content %}
-<div class="page-header pt-7 pb-2 bg-white-blue"></div>
+<div class="page-header pt-7 bg-white-blue"></div>
 <div class="container sticky-top">
-    <div class="card mb-4">
+    <div class="card">
         <div class="card-body">
             <div class="d-flex justify-content-evenly flex-wrap gap-4 mb-3 text-lg">
                 <div><strong>Nama:</strong> {{ pelatihan.judul }}</div>
+                <div><strong>Durasi:</strong> {{ pelatihan.durasi }} JP</div>
                 <div><strong>Tanggal Mulai:</strong> {{ pelatihan.tanggal_mulai|date:"d M Y" }}</div>
                 <div><strong>Tanggal Selesai:</strong> {{ pelatihan.tanggal_selesai|date:"d M Y" }}</div>
-                <div><strong>Durasi:</strong> {{ pelatihan.durasi }} Hari</div>
             </div>
 
             <h6 class="mt-4 mb-2">Progress Pelatihan: {{ pelatihan.persentase_progress }}%</h6>
-            <div class="progress" style="height: 25px;"> {# Adjust height as needed #}
+            <div class="progress" style="height: 15px;"> {# Adjust height as needed #}
                 <div 
                     class="progress-bar bg-success" 
                     role="progressbar" 
@@ -36,6 +36,13 @@
         </div>
     </div>
 </div>
+<div class="container pb-2 d-flex justify-content-end">
+    <a class="btn btn-sm btn-warning mt-3 pb-2">
+        <i class="fa-solid fa-edit"></i> Edit Detail Pelatihan
+    </a>
+</div>
+<hr />
+
 {% endblock page_header_content %}
 
 {% block content %}
@@ -69,11 +76,11 @@
                                 <td class="ps-sm-4 ps-3 text-sm font-weight-bold">{{ form.instance.get_nama_display }}</td>
                                 <td class="d-flex justify-content-evenly align-items-center justify-content-between text-sm font-weight-bold">
                                     {% if form.instance.file_url %}
-                                        <a href="{{ form.instance.file_url.url }}" target="_blank" class="btn btn-sm btn-warning mt-3">
+                                        <a href="{{ form.instance.file_url.url }}" target="_blank" class="btn btn-sm btn-success mt-3">
                                             <i class="fa-solid fa-eye"></i> Lihat
                                         </a>
                                     {% else %}
-                                        <a class="btn btn-sm btn-warning disabled mt-3">
+                                        <a class="btn btn-sm btn-success disabled mt-3">
                                             <i class="fa-solid fa-eye"></i> Lihat
                                         </a>
                                     {% endif %}
