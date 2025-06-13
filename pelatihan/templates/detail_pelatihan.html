@@ -8,86 +8,88 @@
 {% endwith %}
 {% endblock navbar %}
 
-{% block content %}
-
-
-<div class="page-header pt-8 pb-12 bg-white-blue">
-    <div class="container">
-        <h2>Pemasukan Dokumen Pelatihan for {{ pelatihan.judul }} dengan Progress {{ progress }}%</h2>
-        <div class="card mb-4">
-            <div class="card-body px-0 pt-0 pb-2">
-            </div>
-        </div>
-
-        <div class="card mb-4">
-            <div class="card-body px-0 pt-0 pb-2">
-                <form method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    {{ formset.management_form }}
-                    <div class="table-responsive p-0">
-                        <table class="table table-striped table-bordered align-items-center mb-0" aria-label="Detail Pelatihan">
-                            <thead>
-                                <tr>
-                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                        scope="col">Nomor</th>
-                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                        scope="col">Nama Dokumen</th>
-                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                        scope="col">Aksi</th>
-                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                        scope="col">Status</th>
-                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                        scope="col">Notes Admin</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for form in formset %}
-                                <tr>
-                                    {{ form.id }}
-                                    <td class="ps-sm-4 ps-3 text-sm font-weight-bold">{{ forloop.counter }}</td>
-                                    <td class="ps-sm-4 ps-3 text-sm font-weight-bold">{{ form.instance.get_nama_display }}</td>
-                                    <td class="d-flex justify-content-between ps-sm-4 ps-3 text-sm font-weight-bold">
-                                        {% if form.instance.file_url %}
-                                            <a href="{{ form.instance.file_url.url }}" target="_blank" class="btn btn-sm btn-secondary">
-                                                <i class="fa-solid fa-eye"></i> Lihat
-                                            </a>
-                                        {% else %}
-                                            <a class="btn btn-sm btn-secondary disabled">
-                                                <i class="fa-solid fa-eye"></i> Lihat
-                                            </a>
-                                        {% endif %}
-
-                                        {{ form.file_url }}
-
-                                        <label for="{{ form.file_url.id_for_label }}" class="btn btn-sm btn-primary custom-file-label">
-                                            <i class="fa-solid fa-upload"></i> Unggah
-                                        </label>
-                                        
-                                        <form method="post" action="{% url 'skip_document' pelatihan.id form.instance.id %}">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-danger btn-sm">
-                                            <i class="fa-solid fa-xmark"></i> Skip
-                                            </button>
-                                        </form>
-                                    </td>
-                                    <td class="ps-sm-4 ps-3 text-sm font-weight-bold">{{ form.instance.get_status_display }}</td>
-                                    <td class="ps-sm-4 ps-3 text-sm font-weight-bold">
-                                        {% if form.instance.notes_admin %}
-                                            {{ form.instance.get_notes.display }}
-                                        {% else %}
-                                            -
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                </form>
-                </tbody>
-                </table>
-            </div>
+{% block page_header_content %}
+<div class="page-header pt-7 pb-2 bg-white-blue"></div>
+<div class="container sticky-top">
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Sticky Card</h5>
+            <p class="card-text">I will stay at the top when you scroll!</p>
+            
         </div>
     </div>
 </div>
-</div>
+{% endblock page_header_content %}
 
+{% block content %}
+<div class="container">
+    <div class="card mb-4">
+        <div class="card-body px-0 pt-0 pb-2">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ formset.management_form }}
+                <div class="table-responsive p-0">
+                    <table class="table table-striped table-bordered align-items-center mb-0" aria-label="Detail Pelatihan">
+                        <thead>
+                            <tr>
+                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                                    scope="col">Nomor</th>
+                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                                    scope="col">Nama Dokumen</th>
+                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                                    scope="col">Aksi</th>
+                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                                    scope="col">Status</th>
+                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                                    scope="col">Notes Admin</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for form in formset %}
+                            <tr>
+                                {{ form.id }}
+                                <td class="ps-sm-4 ps-3 text-sm font-weight-bold">{{ forloop.counter }}</td>
+                                <td class="ps-sm-4 ps-3 text-sm font-weight-bold">{{ form.instance.get_nama_display }}</td>
+                                <td class="d-flex justify-content-between text-sm font-weight-bold">
+                                    {% if form.instance.file_url %}
+                                        <a href="{{ form.instance.file_url.url }}" target="_blank" class="btn btn-sm btn-secondary">
+                                            <i class="fa-solid fa-eye"></i> Lihat
+                                        </a>
+                                    {% else %}
+                                        <a class="btn btn-sm btn-secondary disabled">
+                                            <i class="fa-solid fa-eye"></i> Lihat
+                                        </a>
+                                    {% endif %}
+
+                                    {{ form.file_url }}
+
+                                    <label for="{{ form.file_url.id_for_label }}" class="btn btn-sm btn-primary custom-file-label">
+                                        <i class="fa-solid fa-upload"></i> Unggah
+                                    </label>
+                                    
+                                    <form method="post" action="{% url 'skip_document' pelatihan.id form.instance.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                        <i class="fa-solid fa-xmark"></i> Skip
+                                        </button>
+                                    </form>
+                                </td>
+                                <td class="ps-sm-4 ps-3 text-sm font-weight-bold">{{ form.instance.get_status_display }}</td>
+                                <td class="ps-sm-4 ps-3 text-sm font-weight-bold">
+                                    {% if form.instance.notes %}
+                                        {{ form.instance.notes }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 {% endblock content %}
