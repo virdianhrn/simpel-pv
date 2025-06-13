@@ -50,32 +50,32 @@
                                 {{ form.id }}
                                 <td class="ps-sm-4 ps-3 text-sm font-weight-bold">{{ forloop.counter }}</td>
                                 <td class="ps-sm-4 ps-3 text-sm font-weight-bold">{{ form.instance.get_nama_display }}</td>
-                                <td class="d-flex justify-content-between text-sm font-weight-bold">
+                                <td class="d-flex align-items-center justify-content-between text-sm font-weight-bold">
                                     {% if form.instance.file_url %}
-                                        <a href="{{ form.instance.file_url.url }}" target="_blank" class="btn btn-sm btn-secondary">
+                                        <a href="{{ form.instance.file_url.url }}" target="_blank" class="btn btn-sm btn-secondary mt-3">
                                             <i class="fa-solid fa-eye"></i> Lihat
                                         </a>
                                     {% else %}
-                                        <a class="btn btn-sm btn-secondary disabled">
+                                        <a class="btn btn-sm btn-secondary disabled mt-3">
                                             <i class="fa-solid fa-eye"></i> Lihat
                                         </a>
                                     {% endif %}
 
                                     {{ form.file_url }}
 
-                                    <label for="{{ form.file_url.id_for_label }}" class="btn btn-sm btn-primary custom-file-label">
+                                    <label for="{{ form.file_url.id_for_label }}" class="btn btn-sm btn-primary custom-file-label mt-3">
                                         <i class="fa-solid fa-upload"></i> Unggah
                                     </label>
                                     
                                     <form method="post" action="{% url 'skip_document' pelatihan.id form.instance.id %}">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-danger btn-sm">
+                                        <button type="submit" class="btn btn-danger btn-sm mt-3">
                                         <i class="fa-solid fa-xmark"></i> Skip
                                         </button>
                                     </form>
                                 </td>
                                 <td class="ps-sm-4 ps-3 text-sm font-weight-bold">{{ form.instance.get_status_display }}</td>
-                                <td class="ps-sm-4 ps-3 text-sm font-weight-bold">
+                                <td class="ps-sm-4 ps-3 text-sm font-weight-bold" style="white-space:normal">
                                     {% if form.instance.notes %}
                                         {{ form.instance.notes }}
                                     {% else %}
