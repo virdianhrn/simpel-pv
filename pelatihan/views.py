@@ -1,6 +1,7 @@
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import STATUS_DOKUMEN_SEDANG_VERIFIKASI, Pelatihan, PelatihanDokumen
+from .models import Pelatihan, PelatihanDokumen
+from .models import STATUS_DOKUMEN_KOSONG, STATUS_DOKUMEN_SEDANG_VERIFIKASI, STATUS_DOKUMEN_PERLU_REVISI, STATUS_DOKUMEN_TERVERIFIKASI
 from .forms import PenambahanDokumenFormSet, PelatihanForm
 from django.core.files.base import ContentFile
 
@@ -20,7 +21,11 @@ def detail(request, pelatihan_id):
   
     context = {
         'pelatihan': pelatihan,
-        'formset': formset
+        'formset': formset,
+        'STATUS_DOKUMEN_KOSONG': STATUS_DOKUMEN_KOSONG,
+        'STATUS_DOKUMEN_SEDANG_VERIFIKASI': STATUS_DOKUMEN_SEDANG_VERIFIKASI,
+        'STATUS_DOKUMEN_PERLU_REVISI': STATUS_DOKUMEN_PERLU_REVISI,
+        'STATUS_DOKUMEN_TERVERIFIKASI': STATUS_DOKUMEN_TERVERIFIKASI,
     }
     return render(request, 'detail_pelatihan.html', context)
 

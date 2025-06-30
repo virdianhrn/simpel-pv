@@ -98,16 +98,14 @@
                                     </form>
                                 </td>
                                 <td class="text-center text-sm font-weight-bold">
-                                    {% if form.instance.get_status_display == 'A' %}
-                                        <span class="badge rounded-pill bg-danger">A</span>
-                                    {% elif form.instance.get_status_display == 'B' %}
-                                        <span class="badge rounded-pill bg-success">B</span>
-                                    {% elif form.instance.get_status_display == 'C' %}
-                                        <span class="badge rounded-pill bg-warning text-dark">C</span> {# Use text-dark for better contrast on warning #}
-                                    {% elif form.instance.get_status_display == 'D' %}
-                                        <span class="badge rounded-pill bg-info">D</span>
+                                    {% if form.instance.status == STATUS_DOKUMEN_PERLU_REVISI %}
+                                        <span class="badge rounded-pill bg-danger">{{ form.instance.get_status_display }}</span>
+                                    {% elif form.instance.status == STATUS_DOKUMEN_TERVERIFIKASI %}
+                                        <span class="badge rounded-pill bg-success">{{ form.instance.get_status_display }}</span>
+                                    {% elif form.instance.status == STATUS_DOKUMEN_SEDANG_VERIFIKASI %}
+                                        <span class="badge rounded-pill bg-info">{{ form.instance.get_status_display }}</span>
                                     {% else %}
-                                        <span class="badge rounded-pill bg-secondary">{{ form.instance.get_status_display }}</span> {# Default for other statuses #}
+                                        <span class="badge rounded-pill bg-secondary">{{ form.instance.get_status_display }}</span>
                                     {% endif %}
                                 </td>
                                 <td class="px-sm-4 px-3 text-center text-sm font-weight-bold" style="white-space:normal">
