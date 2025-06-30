@@ -20,7 +20,7 @@
                 <div><strong>Tanggal Selesai:</strong> {{ pelatihan.tanggal_selesai|date:"d M Y" }}</div>
             </div>
 
-            <h6 class="mt-4 mb-2">Progress Pelatihan: {{ pelatihan.persentase_progress }}%</h6>
+            <h6 class="mt-4 mb-2">Progress Pengisian Dokumen: {{ pelatihan.persentase_progress }}%</h6>
             <div class="progress" style="height: 15px;"> {# Adjust height as needed #}
                 <div 
                     class="progress-bar bg-success" 
@@ -72,9 +72,9 @@
                             {% for form in formset %}
                             <tr>
                                 {{ form.id }}
-                                <td class="ps-sm-4 ps-3 text-sm font-weight-bold">{{ forloop.counter }}</td>
-                                <td class="ps-sm-4 ps-3 text-sm font-weight-bold">{{ form.instance.get_nama_display }}</td>
-                                <td class="d-flex justify-content-evenly align-items-center justify-content-between text-sm font-weight-bold">
+                                <td class="text-center text-sm font-weight-bold">{{ forloop.counter }}</td>
+                                <td class="px-sm-4 px-3 text-sm font-weight-bold" style="white-space:normal">{{ form.instance.get_nama_display }}</td>
+                                <td class="d-flex justify-content-center align-items-center gap-2 text-sm font-weight-bold">
                                     {% if form.instance.file_url %}
                                         <a href="{{ form.instance.file_url.url }}" target="_blank" class="btn btn-sm btn-success mt-3">
                                             <i class="fa-solid fa-eye"></i> Lihat
@@ -85,21 +85,32 @@
                                         </a>
                                     {% endif %}
 
-                                    {{ form.file_url }}
-
+                                    <div style="display: none;">{{ form.file_url }}</div>
                                     <label for="{{ form.file_url.id_for_label }}" class="btn btn-sm btn-primary custom-file-label mt-3">
                                         <i class="fa-solid fa-upload"></i> Unggah
                                     </label>
                                     
-                                    <form method="post" action="{% url 'skip_document' pelatihan.id form.instance.id %}">
+                                    <form method="post" action="{% url 'skip_document' pelatihan.id form.instance.id %}" class="d-flex align-items-center">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-danger btn-sm mt-3">
                                         <i class="fa-solid fa-xmark"></i> Skip
                                         </button>
                                     </form>
                                 </td>
-                                <td class="ps-sm-4 ps-3 text-sm font-weight-bold">{{ form.instance.get_status_display }}</td>
-                                <td class="ps-sm-4 ps-3 text-sm font-weight-bold" style="white-space:normal">
+                                <td class="text-center text-sm font-weight-bold">
+                                    {% if form.instance.get_status_display == 'A' %}
+                                        <span class="badge rounded-pill bg-danger">A</span>
+                                    {% elif form.instance.get_status_display == 'B' %}
+                                        <span class="badge rounded-pill bg-success">B</span>
+                                    {% elif form.instance.get_status_display == 'C' %}
+                                        <span class="badge rounded-pill bg-warning text-dark">C</span> {# Use text-dark for better contrast on warning #}
+                                    {% elif form.instance.get_status_display == 'D' %}
+                                        <span class="badge rounded-pill bg-info">D</span>
+                                    {% else %}
+                                        <span class="badge rounded-pill bg-secondary">{{ form.instance.get_status_display }}</span> {# Default for other statuses #}
+                                    {% endif %}
+                                </td>
+                                <td class="px-sm-4 px-3 text-center text-sm font-weight-bold" style="white-space:normal">
                                     {% if form.instance.notes %}
                                         {{ form.instance.notes }}
                                     {% else %}
