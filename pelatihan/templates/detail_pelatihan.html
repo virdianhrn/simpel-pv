@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %} Manajemen Pelatihan {% endblock title %}
 
@@ -19,6 +20,7 @@
                 <div><strong>Tanggal Mulai:</strong> {{ pelatihan.tanggal_mulai|date:"d M Y" }}</div>
                 <div><strong>Tanggal Selesai:</strong> {{ pelatihan.tanggal_selesai|date:"d M Y" }}</div>
             </div>
+            <hr />
 
             <h6 class="mt-4 mb-2">Progress Pengisian Dokumen: {{ pelatihan.persentase_progress }}%</h6>
             <div class="progress" style="height: 15px;"> {# Adjust height as needed #}
@@ -76,11 +78,14 @@
                                 <td class="px-sm-4 px-3 text-sm font-weight-bold" style="white-space:normal">{{ form.instance.get_nama_display }}</td>
                                 <td class="d-flex justify-content-center align-items-center gap-2 text-sm font-weight-bold">
                                     {% if form.instance.file_url %}
-                                        <a href="{{ form.instance.file_url.url }}" target="_blank" class="btn btn-sm btn-success mt-3">
+                                        <a href="#" class="btn btn-sm btn-success view-document-btn mt-3"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#documentModal"
+                                        data-document-url="{{ form.instance.file_url.url }}">
                                             <i class="fa-solid fa-eye"></i> Lihat
                                         </a>
                                     {% else %}
-                                        <a class="btn btn-sm btn-success disabled mt-3">
+                                        <a class="btn btn-sm btn-secondary disabled mt-3">
                                             <i class="fa-solid fa-eye"></i> Lihat
                                         </a>
                                     {% endif %}
@@ -125,4 +130,27 @@
     </div>
 </div>
 
+<div class="modal fade" id="documentModal" tabindex="-1" aria-labelledby="documentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="documentModalLabel">Pratinjau Dokumen</h5>
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="fas fa-times"></i> {# Font Awesome close icon #}
+                </button>
+            </div>
+            <div class="modal-body">
+                <iframe id="documentIframe" src="" frameborder="0" style="width: 100%; height: 70vh;"></iframe>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                <a id="downloadDocumentBtn" href="#" target="_blank" class="btn btn-primary">Unduh Asli</a>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock content %}
+
+{% block script %}
+<script src="{% static 'pelatihan/js/document_modal.js' %}"></script>
+{% endblock script %}
