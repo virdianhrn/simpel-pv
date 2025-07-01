@@ -15,7 +15,7 @@
     <div class="card">
         <div class="card-body">
             <div class="d-flex justify-content-evenly flex-wrap gap-4 mb-3 text-lg">
-                <div><strong>Nama:</strong> {{ pelatihan.judul }}</div>
+                <div><strong>Judul:</strong> {{ pelatihan.judul }}</div>
                 <div><strong>Durasi:</strong> {{ pelatihan.durasi }} JP</div>
                 <div><strong>Tanggal Mulai:</strong> {{ pelatihan.tanggal_mulai|date:"d M Y" }}</div>
                 <div><strong>Tanggal Selesai:</strong> {{ pelatihan.tanggal_selesai|date:"d M Y" }}</div>
@@ -81,7 +81,8 @@
                                         <a href="#" class="btn btn-sm btn-success view-document-btn mt-3"
                                         data-bs-toggle="modal"
                                         data-bs-target="#documentModal"
-                                        data-document-url="{{ form.instance.file_url.url }}">
+                                        data-document-url="{{ form.instance.file_url.url }}"
+                                        data-document-title="{{ form.instance.get_nama_display }}">
                                             <i class="fa-solid fa-eye"></i> Lihat
                                         </a>
                                     {% else %}
@@ -135,9 +136,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="documentModalLabel">Pratinjau Dokumen</h5>
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal" aria-label="Close">
-                    <i class="fas fa-times"></i> {# Font Awesome close icon #}
-                </button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <iframe id="documentIframe" src="" frameborder="0" style="width: 100%; height: 70vh;"></iframe>
