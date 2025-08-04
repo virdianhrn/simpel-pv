@@ -39,7 +39,7 @@
     </div>
 </div>
 <div class="container pb-2 d-flex justify-content-end">
-    <a class="btn btn-sm btn-warning mt-3 pb-2">
+    <a href="{% url 'edit' pelatihan.id %}" class="btn btn-sm btn-warning mt-3 pb-2">
         <i class="fa-solid fa-edit"></i> Edit Detail Pelatihan
     </a>
 </div>
@@ -132,7 +132,7 @@
                                             <i class="fa-solid fa-download"></i> Download Semua Dokumen
                                         </a>
                                     {% else %}
-                                        <a href="#" class="btn btn-sm btn-success mt-3 pb-2 disabled" aria-disabled="true">
+                                        <a href="#" class="btn btn-sm btn-secondary mt-3 pb-2 disabled" aria-disabled="true">
                                             <i class="fa-solid fa-download"></i> Download Semua Dokumen
                                         </a>
                                     {% endif %}
@@ -157,8 +157,7 @@
                 <iframe id="documentIframe" src="" frameborder="0" style="width: 100%; height: 70vh;"></iframe>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                <a id="downloadDocumentBtn" href="#" target="_blank" class="btn btn-primary">Unduh Asli</a>
+                <a id="downloadDocumentBtn" target="_blank" class="btn btn-primary">Unduh Asli</a>
             </div>
         </div>
     </div>
