@@ -5,7 +5,7 @@ from .models import STATUS_DOKUMEN_KOSONG, STATUS_DOKUMEN_SEDANG_VERIFIKASI, STA
 from .forms import PenambahanDokumenFormSet, PelatihanForm
 from django.core.files.base import ContentFile
 from io import BytesIO
-from PyPDF2 import PdfWriter
+from PyPDF2 import PdfWriter, PdfMerger, PdfReader
 
 def detail(request, pelatihan_id):
     pelatihan = get_object_or_404(Pelatihan, id=pelatihan_id)
@@ -67,3 +67,28 @@ def skip_document(request, pelatihan_id, document_id):
         return redirect('detail', pelatihan_id=pelatihan.id)
 
     return redirect('detail', pelatihan_id=pelatihan.id)
+
+def download_merged_docs(request, pelatihan_id):
+    pelatihan = get_object_or_404(Pelatihan, pk=pelatihan_id)
+    
+    documents_to_merge = PelatihanDokumen.objects.filter(
+        pelatihan=pelatihan
+    )
+
+    pdf_merger = PdfMerger()
+    for document in documents_to_merge:
+        reader = PdfReader(document.file_url.path)
+        page = reader.pages[0]
+        if page.extract_text().strip(): # Check if the page is not empty
+            pdf_merger.append(reader)
+
+    output_buffer = BytesIO()
+    pdf_merger.write(output_buffer)
+    pdf_merger.close()
+
+    output_buffer.seek(0) # Rewind the buffer to the beginning
+    response = HttpResponse(output_buffer, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="merged_documents_{pelatihan.id}.pdf"'
+    buffer.close()
+    
+    return response

@@ -128,11 +128,11 @@
                             <tr>
                                 <td colspan="5" class="text-end">
                                     {% if pelatihan.persentase_progress == 100 %}
-                                        <a href="#" class="btn btn-sm btn-success mt-3 pb-2">
+                                        <a href="{% url 'download_merged_docs' pelatihan.id %}" class="btn btn-sm btn-success mt-3 pb-2">
                                             <i class="fa-solid fa-download"></i> Download Semua Dokumen
                                         </a>
                                     {% else %}
-                                        <a href="#" class="btn btn-sm btn-secondary mt-3 pb-2 disabled" aria-disabled="true">
+                                        <a class="btn btn-sm btn-secondary mt-3 pb-2 disabled" aria-disabled="true">
                                             <i class="fa-solid fa-download"></i> Download Semua Dokumen
                                         </a>
                                     {% endif %}
