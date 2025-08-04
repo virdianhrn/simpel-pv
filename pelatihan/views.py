@@ -4,6 +4,8 @@ from .models import Pelatihan, PelatihanDokumen
 from .models import STATUS_DOKUMEN_KOSONG, STATUS_DOKUMEN_SEDANG_VERIFIKASI, STATUS_DOKUMEN_PERLU_REVISI, STATUS_DOKUMEN_TERVERIFIKASI
 from .forms import PenambahanDokumenFormSet, PelatihanForm
 from django.core.files.base import ContentFile
+from io import BytesIO
+from PyPDF2 import PdfWriter
 
 def detail(request, pelatihan_id):
     pelatihan = get_object_or_404(Pelatihan, id=pelatihan_id)
@@ -50,10 +52,17 @@ def skip_document(request, pelatihan_id, document_id):
 
     if request.method == 'POST':
         document = get_object_or_404(PelatihanDokumen, pk=document_id)
-        with open(r'media\dokumen\blank.pdf', 'rb') as f:
-            document.status = STATUS_DOKUMEN_SEDANG_VERIFIKASI
-            document.file_url.save('blank.pdf', ContentFile(f.read()))
+        buffer = BytesIO()
+        writer = PdfWriter()
 
+        writer.add_blank_page(width=595, height=842) # A4 size in points
+        writer.write(buffer)
+        buffer.seek(0)
+
+        document.status = STATUS_DOKUMEN_SEDANG_VERIFIKASI
+        document.file_url.save('blank.pdf', ContentFile(buffer.read()))
+        
+        buffer.close()
         document.save()
         return redirect('detail', pelatihan_id=pelatihan.id)
 
