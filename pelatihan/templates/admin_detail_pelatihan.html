@@ -79,23 +79,18 @@
                                 <td class="px-sm-4 px-3 text-sm font-weight-bold" style="white-space:normal">{{ form.instance.get_nama_display }}</td>
                                 <td class="d-flex justify-content-center align-items-center gap-2 text-sm font-weight-bold">
                                     {% if form.instance.file_url %}
-                                        <a href="#" class="btn btn-sm btn-success view-document-btn mt-3"
+                                        <a href="#" class="btn btn-sm btn-primary view-document-btn mt-3"
                                         data-bs-toggle="modal"
                                         data-bs-target="#documentModal"
                                         data-document-url="{{ form.instance.file_url.url }}"
                                         data-document-title="{{ form.instance.get_nama_display }}">
-                                            <i class="fa-solid fa-eye"></i> Lihat
+                                            <i class="fa-solid fa-check"></i> Lihat dan Verifikasi
                                         </a>
                                     {% else %}
                                         <a class="btn btn-sm btn-secondary disabled mt-3">
-                                            <i class="fa-solid fa-eye"></i> Lihat
+                                            <i class="fa-solid fa-check"></i> Lihat dan Verifikasi
                                         </a>
                                     {% endif %}
-
-                                    <div style="display: none;">{{ form.file_url }}</div>
-                                    <label for="{{ form.file_url.id_for_label }}" class="btn btn-sm btn-primary custom-file-label mt-3">
-                                        <i class="fa-solid fa-upload"></i> Unggah
-                                    </label>
                                     
                                     <form method="post" action="{% url 'skip_document' pelatihan.id form.instance.id %}" class="d-flex align-items-center">
                                         {% csrf_token %}
@@ -109,7 +104,7 @@
                                         <span class="badge rounded-pill bg-danger">{{ form.instance.get_status_display }}</span>
                                     {% elif form.instance.status == STATUS_DOKUMEN_TERVERIFIKASI %}
                                         <span class="badge rounded-pill bg-success">{{ form.instance.get_status_display }}</span>
-                                    {% elif form.instance.status == STATUS_DOKUMEN_SEDANG_VERIFIKASI %}
+                                    {% elif form.instance.status == STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI %}
                                         <span class="badge rounded-pill bg-info">{{ form.instance.get_status_display }}</span>
                                     {% else %}
                                         <span class="badge rounded-pill bg-secondary">{{ form.instance.get_status_display }}</span>

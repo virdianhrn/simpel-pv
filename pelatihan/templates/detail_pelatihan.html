@@ -109,7 +109,7 @@
                                         <span class="badge rounded-pill bg-danger">{{ form.instance.get_status_display }}</span>
                                     {% elif form.instance.status == STATUS_DOKUMEN_TERVERIFIKASI %}
                                         <span class="badge rounded-pill bg-success">{{ form.instance.get_status_display }}</span>
-                                    {% elif form.instance.status == STATUS_DOKUMEN_SEDANG_VERIFIKASI %}
+                                    {% elif form.instance.status == STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI %}
                                         <span class="badge rounded-pill bg-info">{{ form.instance.get_status_display }}</span>
                                     {% else %}
                                         <span class="badge rounded-pill bg-secondary">{{ form.instance.get_status_display }}</span>

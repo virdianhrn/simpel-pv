@@ -54,13 +54,13 @@ def upload_to_dokumen(instance, _):
     return f'dokumen/{id_pelatihan}/{instance.nama}{random_string}.pdf'
 
 STATUS_DOKUMEN_KOSONG = '0'
-STATUS_DOKUMEN_SEDANG_VERIFIKASI = '1'
+STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI = '1'
 STATUS_DOKUMEN_PERLU_REVISI = '2'
 STATUS_DOKUMEN_TERVERIFIKASI = '3'
 
 STATUS_DOKUMEN_CHOICES = [
         (STATUS_DOKUMEN_KOSONG, 'Kosong'),
-        (STATUS_DOKUMEN_SEDANG_VERIFIKASI, 'Sedang Diverifikasi'),
+        (STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI, 'Dalam Proses Verifikasi'),
         (STATUS_DOKUMEN_PERLU_REVISI, 'Perlu Revisi'),
         (STATUS_DOKUMEN_TERVERIFIKASI, 'Terverifikasi'),
 ]

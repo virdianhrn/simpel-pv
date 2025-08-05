@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Pelatihan, PelatihanDokumen
-from .models import STATUS_DOKUMEN_KOSONG, STATUS_DOKUMEN_SEDANG_VERIFIKASI, STATUS_DOKUMEN_PERLU_REVISI, STATUS_DOKUMEN_TERVERIFIKASI
+from .models import STATUS_DOKUMEN_KOSONG, STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI, STATUS_DOKUMEN_PERLU_REVISI, STATUS_DOKUMEN_TERVERIFIKASI
 from .forms import PenambahanDokumenFormSet, PelatihanForm
 from django.core.files.base import ContentFile
 from io import BytesIO
@@ -15,7 +15,7 @@ def detail_penyelengara(request, pelatihan_id):
         if formset.is_valid():
             for form in formset:
                 if 'file_url' in form.changed_data:
-                    form.instance.status = STATUS_DOKUMEN_SEDANG_VERIFIKASI
+                    form.instance.status = STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI
             formset.save()
             return redirect('detail', pelatihan_id=pelatihan.id)
     else:
@@ -25,7 +25,7 @@ def detail_penyelengara(request, pelatihan_id):
         'pelatihan': pelatihan,
         'formset': formset,
         'STATUS_DOKUMEN_KOSONG': STATUS_DOKUMEN_KOSONG,
-        'STATUS_DOKUMEN_SEDANG_VERIFIKASI': STATUS_DOKUMEN_SEDANG_VERIFIKASI,
+        'STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI': STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI,
         'STATUS_DOKUMEN_PERLU_REVISI': STATUS_DOKUMEN_PERLU_REVISI,
         'STATUS_DOKUMEN_TERVERIFIKASI': STATUS_DOKUMEN_TERVERIFIKASI,
     }
@@ -39,7 +39,7 @@ def detail_admin(request, pelatihan_id):
         if formset.is_valid():
             for form in formset:
                 if 'file_url' in form.changed_data:
-                    form.instance.status = STATUS_DOKUMEN_SEDANG_VERIFIKASI
+                    form.instance.status = STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI
             formset.save()
             return redirect('detail', pelatihan_id=pelatihan.id)
     else:
@@ -49,11 +49,11 @@ def detail_admin(request, pelatihan_id):
         'pelatihan': pelatihan,
         'formset': formset,
         'STATUS_DOKUMEN_KOSONG': STATUS_DOKUMEN_KOSONG,
-        'STATUS_DOKUMEN_SEDANG_VERIFIKASI': STATUS_DOKUMEN_SEDANG_VERIFIKASI,
+        'STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI': STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI,
         'STATUS_DOKUMEN_PERLU_REVISI': STATUS_DOKUMEN_PERLU_REVISI,
         'STATUS_DOKUMEN_TERVERIFIKASI': STATUS_DOKUMEN_TERVERIFIKASI,
     }
-    return render(request, 'detail_pelatihan.html', context)
+    return render(request, 'admin_detail_pelatihan.html', context)
 
 def detail(request, pelatihan_id):
     if request.user.profile.is_admin:
@@ -91,7 +91,7 @@ def skip_document(request, pelatihan_id, document_id):
         writer.write(buffer)
         buffer.seek(0)
 
-        document.status = STATUS_DOKUMEN_SEDANG_VERIFIKASI
+        document.status = STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI
         document.file_url.save('blank.pdf', ContentFile(buffer.read()))
         
         buffer.close()

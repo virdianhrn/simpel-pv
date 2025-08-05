@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='pelatihandokumen',
             name='status',
-            field=models.CharField(choices=[('0', 'Kosong'), ('1', 'Sedang Diverifikasi'), ('2', 'Perlu Revisi'), ('3', 'Terverifikasi')], default='0', max_length=1, verbose_name='Status Dokumen'),
+            field=models.CharField(choices=[('0', 'Kosong'), ('1', 'Dalam Proses Verifikasi'), ('2', 'Perlu Revisi'), ('3', 'Terverifikasi')], default='0', max_length=1, verbose_name='Status Dokumen'),
         ),
         migrations.AlterField(
             model_name='pelatihandokumen',
