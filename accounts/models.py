@@ -25,3 +25,11 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"{self.user.first_name} {self.user.last_name}"
+    
+    @property
+    def is_admin(self):
+        return self.role == self.ADMIN
+
+    @property
+    def is_penyelenggara(self):
+        return self.role == self.PENYELENGGARA

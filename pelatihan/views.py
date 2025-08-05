@@ -7,7 +7,7 @@ from django.core.files.base import ContentFile
 from io import BytesIO
 from PyPDF2 import PdfWriter, PdfMerger, PdfReader
 
-def detail(request, pelatihan_id):
+def detail_penyelengara(request, pelatihan_id):
     pelatihan = get_object_or_404(Pelatihan, id=pelatihan_id)
     
     if request.method == 'POST':
@@ -30,6 +30,38 @@ def detail(request, pelatihan_id):
         'STATUS_DOKUMEN_TERVERIFIKASI': STATUS_DOKUMEN_TERVERIFIKASI,
     }
     return render(request, 'detail_pelatihan.html', context)
+
+def detail_admin(request, pelatihan_id):
+    pelatihan = get_object_or_404(Pelatihan, id=pelatihan_id)
+    
+    if request.method == 'POST':
+        formset = PenambahanDokumenFormSet(request.POST, request.FILES, instance=pelatihan)
+        if formset.is_valid():
+            for form in formset:
+                if 'file_url' in form.changed_data:
+                    form.instance.status = STATUS_DOKUMEN_SEDANG_VERIFIKASI
+            formset.save()
+            return redirect('detail', pelatihan_id=pelatihan.id)
+    else:
+        formset = PenambahanDokumenFormSet(instance=pelatihan)
+  
+    context = {
+        'pelatihan': pelatihan,
+        'formset': formset,
+        'STATUS_DOKUMEN_KOSONG': STATUS_DOKUMEN_KOSONG,
+        'STATUS_DOKUMEN_SEDANG_VERIFIKASI': STATUS_DOKUMEN_SEDANG_VERIFIKASI,
+        'STATUS_DOKUMEN_PERLU_REVISI': STATUS_DOKUMEN_PERLU_REVISI,
+        'STATUS_DOKUMEN_TERVERIFIKASI': STATUS_DOKUMEN_TERVERIFIKASI,
+    }
+    return render(request, 'detail_pelatihan.html', context)
+
+def detail(request, pelatihan_id):
+    if request.user.profile.is_admin:
+        return detail_admin(request, pelatihan_id)
+    elif request.user.profile.is_penyelenggara:
+        return detail_penyelengara(request, pelatihan_id)
+    else:
+        return HttpResponse("Unauthorized", status=401)
 
 def edit(request, pelatihan_id):
     pelatihan = get_object_or_404(Pelatihan, id=pelatihan_id)
