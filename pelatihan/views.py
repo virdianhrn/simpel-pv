@@ -105,7 +105,10 @@ def skip_document(request, pelatihan_id, document_id):
         writer.write(buffer)
         buffer.seek(0)
 
-        document.status = STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI
+        if request.user.profile.is_admin:
+            document.status = STATUS_DOKUMEN_TERVERIFIKASI
+        else:
+            document.status = STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI
         document.file_url.save('blank.pdf', ContentFile(buffer.read()))
         
         buffer.close()
