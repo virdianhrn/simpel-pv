@@ -80,11 +80,13 @@
                                 <td class="px-sm-4 px-3 text-sm font-weight-bold" style="white-space:normal">{{ form.instance.get_nama_display }}</td>
                                 <td class="d-flex justify-content-center align-items-center gap-2 text-sm font-weight-bold">
                                     {% if form.instance.file_url %}
-                                        <a href="#" class="btn btn-sm btn-primary view-document-btn mt-3"
+                                        <a href="#" class="btn btn-sm btn-primary edit-document-btn mt-3"
                                         data-bs-toggle="modal"
                                         data-bs-target="#documentModal"
+                                        data-document-title="{{ form.instance.get_nama_display }}"
+                                        data-document-id="{{ form.instance.id }}"
                                         data-document-url="{{ form.instance.file_url.url }}"
-                                        data-document-title="{{ form.instance.get_nama_display }}">
+                                        data-pelatihan-id="{{ pelatihan.id }}">
                                             <i class="fa-solid fa-check"></i> Lihat dan Verifikasi
                                         </a>
                                     {% else %}
@@ -146,14 +148,28 @@
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="documentModalLabel">Pratinjau Dokumen</h5>
+                <h5 class="modal-title" id="documentModalLabel">Edit & Pratinjau Dokumen</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <iframe id="documentIframe" src="" frameborder="0" style="width: 100%; height: 70vh;"></iframe>
+                <div class="row">
+                    <div class="col-md-7">
+                        <h6 class="mb-2">Pratinjau Dokumen</h6>
+                        <div id="iframeContainer">
+                            <iframe id="documentPreviewIframe" src="" frameborder="0" style="width: 100%; height: 70vh;"></iframe>
+                        </div>
+                    </div>
+
+                    <div class="col-md-5">
+                        <h6 class="mb-2">Detail & Verifikasi</h6>
+                        <div id="documentFormContainer">
+                            <div class="text-center mt-5"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
-                <a id="downloadDocumentBtn" target="_blank" class="btn btn-primary">Unduh Asli</a>
+                <button type="submit" class="btn btn-primary" form="editDocumentForm">Simpan Perubahan</button>
             </div>
         </div>
     </div>
@@ -161,5 +177,5 @@
 {% endblock content %}
 
 {% block script %}
-<script src="{% static 'pelatihan/js/document_modal.js' %}"></script>
+<script src="{% static 'pelatihan/js/verifikasi_modal.js' %}"></script>
 {% endblock script %}

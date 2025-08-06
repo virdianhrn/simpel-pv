@@ -1,11 +1,25 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Pelatihan, PelatihanDokumen
 from .models import STATUS_DOKUMEN_KOSONG, STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI, STATUS_DOKUMEN_PERLU_REVISI, STATUS_DOKUMEN_TERVERIFIKASI
-from .forms import PenambahanDokumenFormSet, PelatihanForm
+from .forms import PenambahanDokumenFormSet, PelatihanForm, VerifikasiDokumenForm
 from django.core.files.base import ContentFile
 from io import BytesIO
 from PyPDF2 import PdfWriter, PdfMerger, PdfReader
+
+def verifikasi_dokumen(request, pelatihan_id, document_id):
+    document = get_object_or_404(PelatihanDokumen, pk=document_id)
+
+    if request.method == 'POST':
+        form = VerifikasiDokumenForm(request.POST, request.FILES, instance=document)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'success': True, 'status': document.get_status_display()})
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors})
+
+    form = VerifikasiDokumenForm(instance=document)
+    return render(request, 'form_verifikasi.html', {'form': form, 'document': document})
 
 def detail_penyelengara(request, pelatihan_id):
     pelatihan = get_object_or_404(Pelatihan, id=pelatihan_id)

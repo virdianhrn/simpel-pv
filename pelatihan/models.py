@@ -65,6 +65,11 @@ STATUS_DOKUMEN_CHOICES = [
         (STATUS_DOKUMEN_TERVERIFIKASI, 'Terverifikasi'),
 ]
 
+VERIFIKASI_CHOICES = [
+        (STATUS_DOKUMEN_PERLU_REVISI, 'Perlu Revisi'),
+        (STATUS_DOKUMEN_TERVERIFIKASI, 'Terverifikasi'),
+]
+
 class PelatihanDokumen(models.Model):
     pelatihan = models.ForeignKey(Pelatihan, on_delete=models.CASCADE, 
                                   related_name='dokumen')

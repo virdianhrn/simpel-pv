@@ -1,4 +1,4 @@
-from .models import Pelatihan, PelatihanDokumen
+from .models import Pelatihan, PelatihanDokumen, VERIFIKASI_CHOICES
 from django import forms
 from django.core.exceptions import ValidationError
 
@@ -36,3 +36,21 @@ PenambahanDokumenFormSet = forms.inlineformset_factory(
     extra=0,
     can_delete=False,
 )
+
+class VerifikasiDokumenForm(forms.ModelForm):
+    class Meta:
+        model = PelatihanDokumen
+        fields = ['status', 'notes']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Override the choices for the 'status' field
+        self.fields['status'].choices = VERIFIKASI_CHOICES
+        # ------------------------------------
+
+        # This is your existing code to add CSS classes
+        for field_name, field in self.fields.items():
+            field.widget.attrs['class'] = 'form-control'
+            if field_name == 'notes':
+                field.widget = forms.Textarea(attrs={'class': 'form-control', 'rows': 3})
