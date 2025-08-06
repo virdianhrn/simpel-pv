@@ -137,7 +137,7 @@ def download_merged_docs(request, pelatihan_id):
 
     output_buffer.seek(0) # Rewind the buffer to the beginning
     response = HttpResponse(output_buffer, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="merged_documents_{pelatihan.id}.pdf"'
+    response['Content-Disposition'] = f'attachment; filename="Dokumen Pelatihan-{pelatihan.judul}.pdf"'
     output_buffer.close()
     
     return response
