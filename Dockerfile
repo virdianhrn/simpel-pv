@@ -36,14 +36,16 @@ WORKDIR /app
  
 # Copy application code
 COPY --chown=appuser:appuser . .
- 
+
 # Set environment variables to optimize Python
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1 
  
 # Switch to non-root user
 USER appuser
- 
+
+RUN python manage.py collectstatic --noinput
+
 # Expose the application port
 EXPOSE 8000 
  
