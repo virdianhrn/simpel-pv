@@ -1,5 +1,5 @@
 # Stage 1: Base build stage
-FROM python:3.13.5-slim AS builder
+FROM python:3.13.5 AS builder
  
 # Create the app directory
 RUN mkdir /app
@@ -21,7 +21,7 @@ COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
  
 # Stage 2: Production stage
-FROM python:3.13.5-slim
+FROM python:3.13.5
  
 RUN useradd -m -r appuser && \
    mkdir /app && \
@@ -44,6 +44,8 @@ ENV PYTHONUNBUFFERED=1
 # Switch to non-root user
 USER appuser
 
+RUN python manage.py makemigrations --noinput
+RUN python manage.py migrate --noinput
 RUN python manage.py collectstatic --noinput
 
 # Expose the application port

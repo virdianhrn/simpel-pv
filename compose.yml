@@ -1,13 +1,30 @@
 services:
- web:
-   build: .
-   container_name: sipena-docker
-   ports:
-     - "8001:8000"
-   environment:
-     DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
-     DEBUG: ${DEBUG}
-     DJANGO_LOGLEVEL: ${DJANGO_LOGLEVEL}
-     DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
-   env_file:
-     - .env
+  db:
+    container_name: mariadb-container
+    image: mariadb:10.11.6
+    restart: always
+    command: mysqld --default-authentication-plugin=mysql_native_password
+    env_file:
+      - .env
+    environment:
+      - MYSQL_ROOT_PASSWORD=${SQL_ROOT_PASSWORD}
+      - MYSQL_USER=${SQL_USER}
+      - MYSQL_PASSWORD=${SQL_PASSWORD}
+      - MYSQL_DATABASE=${SQL_DATABASE}
+    ports:
+      - 3306:3306
+
+  web:
+    build: .
+    container_name: sipena-container
+    ports:
+      - "8001:8000"
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DEBUG: ${DEBUG}
+      DJANGO_LOGLEVEL: ${DJANGO_LOGLEVEL}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
+    env_file:
+      - .env
+    depends_on:
+      - db
