@@ -12,7 +12,7 @@ services:
       - MYSQL_PASSWORD=${SQL_PASSWORD}
       - MYSQL_DATABASE=${SQL_DATABASE}
     ports:
-      - 3306:3306
+      - 3307:3306
 
   web:
     build: .
