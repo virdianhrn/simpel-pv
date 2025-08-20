@@ -42,7 +42,9 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1 
 
 RUN python manage.py collectstatic --noinput
-
+RUN find /app -type d -exec chmod 755 {} + && \
+    find /app -type f -exec chmod 644 {} +
+    
 # Switch to non-root user
 USER appuser
 
