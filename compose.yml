@@ -4,17 +4,5 @@ services:
     container_name: sipena-container
     ports:
       - "8001:8000"
-    environment:
-      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
-      DEBUG: ${DEBUG}
-      DJANGO_LOGLEVEL: ${DJANGO_LOGLEVEL}
-      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
-      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS}
-      DB_ENGINE: ${SQL_ENGINE}
-      DB_NAME: ${SQL_DATABASE}
-      DB_USER: ${SQL_USER}
-      DB_PASSWORD: ${SQL_PASSWORD}
-      DB_HOST: ${SQL_HOST}
-      DB_PORT: ${SQL_PORT}
     env_file:
       - .env

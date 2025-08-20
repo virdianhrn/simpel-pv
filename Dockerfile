@@ -44,8 +44,6 @@ ENV PYTHONUNBUFFERED=1
 # Switch to non-root user
 USER appuser
 
-RUN python manage.py makemigrations --noinput
-RUN python manage.py migrate --noinput
 RUN python manage.py collectstatic --noinput
 
 # Expose the application port
