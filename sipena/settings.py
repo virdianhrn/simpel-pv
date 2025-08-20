@@ -21,10 +21,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
- 
 DEBUG = bool(os.environ.get("DEBUG", default=0))
- 
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS","10.10.2.42").split(",")
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -78,9 +78,13 @@ WSGI_APPLICATION = 'sipena.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": os.environ.get("DB_ENGINE", "django.db.backends.sqlite3"),
+        "NAME": os.environ.get("DB_NAME", os.path.join(BASE_DIR, 'db.sqlite3')),
+        "USER": os.environ.get("DB_USER", "myuser"),
+        "PASSWORD": os.environ.get("DB_PASSWORD", "myuserpassword"),
+        "HOST": os.environ.get("DB_HOST", "localhost"),
+        "PORT": os.environ.get("DB_PORT", "3306"),
     }
 }
 
