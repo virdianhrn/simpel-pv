@@ -1,21 +1,4 @@
 services:
-  db:
-    container_name: mariadb-container
-    image: mariadb:10.11.6
-    restart: always
-    command: mysqld --default-authentication-plugin=mysql_native_password
-    env_file:
-      - .env
-    environment:
-      - MYSQL_ROOT_PASSWORD=${SQL_ROOT_PASSWORD}
-      - MYSQL_USER=${SQL_USER}
-      - MYSQL_PASSWORD=${SQL_PASSWORD}
-      - MYSQL_DATABASE=${SQL_DATABASE}
-    volumes:
-      - mariadb_data:/var/lib/mysql
-    ports:
-      - 3307:3306
-
   web:
     build: .
     container_name: sipena-container
@@ -26,10 +9,11 @@ services:
       DEBUG: ${DEBUG}
       DJANGO_LOGLEVEL: ${DJANGO_LOGLEVEL}
       DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS}
+      DB_NAME: ${SQL_DATABASE}
+      DB_USER: ${SQL_USER}
+      DB_PASSWORD: ${SQL_PASSWORD}
+      DB_HOST: ${SQL_HOST}
+      DB_PORT: ${SQL_PORT}
     env_file:
       - .env
-    depends_on:
-      - db
-      
-volumes:
-  mariadb_data:
