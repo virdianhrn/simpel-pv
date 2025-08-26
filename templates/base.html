@@ -39,7 +39,7 @@
     {% block meta %} {% endblock meta %}
   </head>
 
-  <body class="bg-gray-100">
+  <body data-messages="{{ messages_json|default:'[]' }}" class="bg-gray-100">
     <!-- Navigation -->
     {% block navbar %}
       {% include 'navbar.html' with variant=variant %}

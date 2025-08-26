@@ -28,6 +28,20 @@ class PenambahanDokumenForm(forms.ModelForm):
                 'accept': '.pdf'
             }),
         }
+    def clean_file_url(self):
+        """Custom validation to ensure the uploaded file is less than 5MB."""
+        file = self.cleaned_data.get('file_url', False)
+        
+        if file:
+            # Define the maximum size in bytes (5MB)
+            max_size = 5 * 1024 * 1024
+            
+            if file.size > max_size:
+                raise ValidationError(
+                    f'Ukuran file tidak boleh melebihi 5 MB.'
+                )
+                
+        return file
 
 PenambahanDokumenFormSet = forms.inlineformset_factory(
     Pelatihan,
