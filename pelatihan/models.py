@@ -1,9 +1,7 @@
-import random
-import string
+import uuid, os
 from django.db import models
 from django.core.exceptions import ValidationError
 from accounts.models import Profile
-import uuid
 
 NAMA_DOKUMEN_CHOICES = [
         ('00', 'Daftar Riwayat Hidup Peserta'),
@@ -54,7 +52,6 @@ class Pelatihan(models.Model):
 def upload_to_dokumen(instance, filename):
     id_pelatihan = instance.pelatihan.id
     extension = os.path.splitext(filename)[1]
-    random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
     new_filename = f"{uuid.uuid4()}{extension}"
     return f'dokumen/{id_pelatihan}/{new_filename}'
 
