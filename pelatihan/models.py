@@ -3,6 +3,7 @@ import string
 from django.db import models
 from django.core.exceptions import ValidationError
 from accounts.models import Profile
+import uuid
 
 NAMA_DOKUMEN_CHOICES = [
         ('00', 'Daftar Riwayat Hidup Peserta'),
@@ -26,6 +27,8 @@ def get_list_nama_dokumen():
     return [code for code, _ in NAMA_DOKUMEN_CHOICES]
 
 class Pelatihan(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
     judul = models.CharField(max_length=255, verbose_name="Judul Pelatihan")
     pic = models.ForeignKey(Profile, verbose_name="PIC Pelatihan", 
                             on_delete=models.CASCADE, related_name='pelatihan')
@@ -48,10 +51,12 @@ class Pelatihan(models.Model):
 
 
 
-def upload_to_dokumen(instance, _):
+def upload_to_dokumen(instance, filename):
     id_pelatihan = instance.pelatihan.id
+    extension = os.path.splitext(filename)[1]
     random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
-    return f'dokumen/{id_pelatihan}/{instance.nama}{random_string}.pdf'
+    new_filename = f"{uuid.uuid4()}{extension}"
+    return f'dokumen/{id_pelatihan}/{new_filename}'
 
 STATUS_DOKUMEN_KOSONG = '0'
 STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI = '1'
@@ -71,6 +76,8 @@ VERIFIKASI_CHOICES = [
 ]
 
 class PelatihanDokumen(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
     pelatihan = models.ForeignKey(Pelatihan, on_delete=models.CASCADE, 
                                   related_name='dokumen')
     
@@ -98,6 +105,9 @@ class PelatihanDokumen(models.Model):
         verbose_name="Notes Admin",
         blank=True
     )
+
+    class Meta:
+        unique_together = ('pelatihan', 'nama')
     
     def __str__(self):
         label =  dict(NAMA_DOKUMEN_CHOICES).get(self.nama)
