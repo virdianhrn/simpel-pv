@@ -26,7 +26,6 @@ def verifikasi_dokumen(request, pelatihan_id, document_id):
 def detail_penyelengara(request, pelatihan_id):
     pelatihan = get_object_or_404(Pelatihan, id=pelatihan_id)
     
-    #TODO: File format dan size verification
     if request.method == 'POST':
         formset = PenambahanDokumenFormSet(request.POST, request.FILES, instance=pelatihan)
         if formset.is_valid():
@@ -69,17 +68,28 @@ def detail_admin(request, pelatihan_id):
     if request.method == 'POST':
         formset = PenambahanDokumenFormSet(request.POST, request.FILES, instance=pelatihan)
         if formset.is_valid():
-            for form in formset:
-                if 'file_url' in form.changed_data:
-                    form.instance.status = STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI
             formset.save()
+            messages.success(request, 'Status dokumen berhasil diupdate!')
             return redirect('detail', pelatihan_id=pelatihan.id)
+        else:
+            for form in formset:
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, error)
     else:
         formset = PenambahanDokumenFormSet(instance=pelatihan)
-  
+    
+    message_list = []
+    for message in messages.get_messages(request):
+        message_list.append({
+            'body': str(message),
+            'tags': message.tags,
+        })
+
     context = {
         'pelatihan': pelatihan,
         'formset': formset,
+        'messages_json': json.dumps(message_list),
         'STATUS_DOKUMEN_KOSONG': STATUS_DOKUMEN_KOSONG,
         'STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI': STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI,
         'STATUS_DOKUMEN_PERLU_REVISI': STATUS_DOKUMEN_PERLU_REVISI,
