@@ -9,6 +9,8 @@ services:
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
+    command: >
+      sh -c "chown -R appuser:appuser /app/media /app/staticfiles
 
 volumes:
   static_volume:
