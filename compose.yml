@@ -10,7 +10,8 @@ services:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
     command: >
-      sh -c "chown -R appuser:appuser /app/media /app/staticfiles"
+      sh -c "chown -R www-data:www-data /app/media /app/staticfiles &&
+             exec su-exec www-data gunicorn sipena.wsgi:application --bind 0.0.0.0:8000"
 
 volumes:
   static_volume:
