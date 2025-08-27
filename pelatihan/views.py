@@ -8,6 +8,9 @@ from io import BytesIO
 from PyPDF2 import PdfWriter, PdfMerger, PdfReader
 from django.contrib import messages
 import json
+from django.views import View
+from django.http import HttpResponseForbidden
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 def verifikasi_dokumen(request, pelatihan_id, document_id):
     document = get_object_or_404(PelatihanDokumen, pk=document_id)
@@ -23,79 +26,98 @@ def verifikasi_dokumen(request, pelatihan_id, document_id):
     form = VerifikasiDokumenForm(instance=document)
     return render(request, 'form_verifikasi.html', {'form': form, 'document': document})
 
-def detail_penyelengara(request, pelatihan_id):
-    pelatihan = get_object_or_404(Pelatihan, id=pelatihan_id)
+class PelatihanDetailView(LoginRequiredMixin, View):
     
-    if request.method == 'POST':
-        formset = PenambahanDokumenFormSet(request.POST, request.FILES, instance=pelatihan)
-        if formset.is_valid():
-            for form in formset:
-                if 'file_url' in form.changed_data:
-                    form.instance.status = STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI
-            formset.save()
-            messages.success(request, 'Dokumen berhasil diunggah!')
+    def dispatch(self, request, *args, **kwargs):
+        """
+        This method runs first to check the user's role and route them
+        to the correct handler method (get_admin or get_penyelenggara).
+        """
+        profile = request.user.profile
+        pelatihan_id = kwargs.get('pelatihan_id')
+        pelatihan = get_object_or_404(Pelatihan, id=pelatihan_id)
+
+        if profile.is_admin:
+            # The request is passed along to the admin handler
+            return self.handle_admin(request, pelatihan)
+        elif profile.is_penyelenggara:
+            # The request is passed along to the penyelenggara handler
+            return self.handle_penyelenggara(request, pelatihan)
+        else:
+            return HttpResponseForbidden("You are not authorized to view this page.")
+
+    def handle_penyelenggara(self, request, pelatihan):     
+        if request.method == 'POST':
+            formset = PenambahanDokumenFormSet(request.POST, request.FILES, instance=pelatihan)
+
+
+            if formset.is_valid():
+                for form in formset:
+                    if 'file_url' in form.changed_data:
+                        form.instance.status = STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI
+                        break
+                formset.save()
+                messages.success(request, 'Dokumen berhasil diunggah!')
+            
+            else:
+                for form in formset:
+                    for field, errors in form.errors.items():
+                        for error in errors:
+                            messages.error(request, error)
+                return redirect('detail', pelatihan_id=pelatihan.id)
+        else:
+            formset = PenambahanDokumenFormSet(instance=pelatihan)
         
-        else:
-            for form in formset:
-                for field, errors in form.errors.items():
-                    for error in errors:
-                        messages.error(request, error)
-            return redirect('detail', pelatihan_id=pelatihan.id)
-    else:
-        formset = PenambahanDokumenFormSet(instance=pelatihan)
-    
-    message_list = []
-    for message in messages.get_messages(request):
-        message_list.append({
-            'body': str(message),
-            'tags': message.tags,
-        })
-    
-    context = {
-        'pelatihan': pelatihan,
-        'formset': formset,
-        'messages_json': json.dumps(message_list),
-        'STATUS_DOKUMEN_KOSONG': STATUS_DOKUMEN_KOSONG,
-        'STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI': STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI,
-        'STATUS_DOKUMEN_PERLU_REVISI': STATUS_DOKUMEN_PERLU_REVISI,
-        'STATUS_DOKUMEN_TERVERIFIKASI': STATUS_DOKUMEN_TERVERIFIKASI,
-    }
-    return render(request, 'detail_pelatihan.html', context)
+        message_list = []
+        for message in messages.get_messages(request):
+            message_list.append({
+                'body': str(message),
+                'tags': message.tags,
+            })
+        
+        context = {
+            'pelatihan': pelatihan,
+            'formset': formset,
+            'messages_json': json.dumps(message_list),
+            'STATUS_DOKUMEN_KOSONG': STATUS_DOKUMEN_KOSONG,
+            'STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI': STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI,
+            'STATUS_DOKUMEN_PERLU_REVISI': STATUS_DOKUMEN_PERLU_REVISI,
+            'STATUS_DOKUMEN_TERVERIFIKASI': STATUS_DOKUMEN_TERVERIFIKASI,
+        }
+        return render(request, 'detail_pelatihan.html', context)
 
-def detail_admin(request, pelatihan_id):
-    pelatihan = get_object_or_404(Pelatihan, id=pelatihan_id)
-    
-    if request.method == 'POST':
-        formset = PenambahanDokumenFormSet(request.POST, request.FILES, instance=pelatihan)
-        if formset.is_valid():
-            formset.save()
-            messages.success(request, 'Status dokumen berhasil diupdate!')
-            return redirect('detail', pelatihan_id=pelatihan.id)
+    def handle_admin(self, request, pelatihan):           
+        if request.method == 'POST':
+            formset = PenambahanDokumenFormSet(request.POST, request.FILES, instance=pelatihan)
+            if formset.is_valid():
+                formset.save()
+                messages.success(request, 'Status dokumen berhasil diupdate!')
+                return redirect('detail', pelatihan_id=pelatihan.id)
+            else:
+                for form in formset:
+                    for field, errors in form.errors.items():
+                        for error in errors:
+                            messages.error(request, error)
         else:
-            for form in formset:
-                for field, errors in form.errors.items():
-                    for error in errors:
-                        messages.error(request, error)
-    else:
-        formset = PenambahanDokumenFormSet(instance=pelatihan)
-    
-    message_list = []
-    for message in messages.get_messages(request):
-        message_list.append({
-            'body': str(message),
-            'tags': message.tags,
-        })
+            formset = PenambahanDokumenFormSet(instance=pelatihan)
+        
+        message_list = []
+        for message in messages.get_messages(request):
+            message_list.append({
+                'body': str(message),
+                'tags': message.tags,
+            })
 
-    context = {
-        'pelatihan': pelatihan,
-        'formset': formset,
-        'messages_json': json.dumps(message_list),
-        'STATUS_DOKUMEN_KOSONG': STATUS_DOKUMEN_KOSONG,
-        'STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI': STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI,
-        'STATUS_DOKUMEN_PERLU_REVISI': STATUS_DOKUMEN_PERLU_REVISI,
-        'STATUS_DOKUMEN_TERVERIFIKASI': STATUS_DOKUMEN_TERVERIFIKASI,
-    }
-    return render(request, 'admin_detail_pelatihan.html', context)
+        context = {
+            'pelatihan': pelatihan,
+            'formset': formset,
+            'messages_json': json.dumps(message_list),
+            'STATUS_DOKUMEN_KOSONG': STATUS_DOKUMEN_KOSONG,
+            'STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI': STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI,
+            'STATUS_DOKUMEN_PERLU_REVISI': STATUS_DOKUMEN_PERLU_REVISI,
+            'STATUS_DOKUMEN_TERVERIFIKASI': STATUS_DOKUMEN_TERVERIFIKASI,
+        }
+        return render(request, 'admin_detail_pelatihan.html', context)
 
 def detail(request, pelatihan_id):
     if request.user.profile.is_admin:
