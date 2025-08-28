@@ -17,4 +17,4 @@ def login_handler(request):
             return HttpResponseRedirect(request.GET.get('next','/'))
         error = 'Username / password tidak sesuai'
     response = {'error' : error}
-    return render(request,'login.html',response)
+    return render(request,'login.html', response)

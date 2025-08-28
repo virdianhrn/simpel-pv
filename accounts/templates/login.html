@@ -2,12 +2,6 @@
 {% load static %}
 {% block title %} Masuk {% endblock title %}
 
-{% block navbar %}
-  {% with variant='light' %}
-    {{ block.super }}
-  {% endwith %}
-{% endblock navbar %}
-
 {% block content%}
 <div class="page-header align-items-center min-vh-100"
   style="
@@ -32,6 +26,13 @@
           <div class="card-body">
             <form action="" method="POST">
               {% csrf_token %}
+
+              {% if error %}
+                <div class="alert alert-danger text-white text-center" role="alert">
+                    {{ error }}
+                </div>
+              {% endif %}
+              
               <div class="mb-3">
                 <input type="text" class="form-control" placeholder="Masukkan username anda" name="username" required />
               </div>
