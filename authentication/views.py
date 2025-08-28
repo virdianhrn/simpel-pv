@@ -21,4 +21,4 @@ def login_handler(request):
 
 def logout_handler(request):
     logout(request)
-    return HttpResponseRedirect(reverse('accounts:login'))
+    return render(request,'logout.html')
