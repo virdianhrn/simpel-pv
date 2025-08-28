@@ -7,8 +7,7 @@ from django.urls import reverse
 def login_handler(request):
     error = None
     if(request.user.is_authenticated):
-        # return HttpResponseRedirect(reverse('main:landing_page'))
-        return HttpResponseRedirect('')
+        return HttpResponseRedirect(reverse('main:landing_page'))
     if request.method == "POST" :
         data = request.POST
         user = authenticate(username=data['username'],password=data['password'])
