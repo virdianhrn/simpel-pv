@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} Keluar {% endblock title %}
+
+{% block content%}
+<div class="page-header align-items-center min-vh-100"
+  style="
+    background-image: url({% static 'img/bbpvp-bekasi.jpg' %});
+    background-size: cover;
+    background-position: center;
+  ">
+
+  <span class="mask bg-gradient-dark opacity-6"></span>
+
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-xl-5 col-lg-6 col-md-8 col-sm-11 mx-auto">
+        <div class="card z-index-0 text-center">
+          <div class="card-body py-5">
+            <h2 class="text-success mb-3"><i class="fa fa-check-circle fa-3x"></i></h2>
+            <h3 class="card-title">Anda Telah Keluar</h3>
+            <p class="text-secondary">
+              Terima kasih telah menggunakan SIPENA. Sesi Anda telah berakhir dengan aman.
+            </p>
+            <a href="{% url 'login' %}" class="btn bg-gradient-dark w-100 mt-3 mb-2">Masuk Kembali</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

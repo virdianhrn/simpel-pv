@@ -41,7 +41,7 @@
             {{ user }}
           </a>
           <ul class="dropdown-menu">     
-            <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">Keluar</a></li>
+            <li><a class="dropdown-item" href="{% url 'authentication:logout' %}">Keluar</a></li>
           </ul>
         </li>
         {% elif user.profile.role == 'AD' %}
@@ -57,7 +57,7 @@
             {{ user }}
           </a>
           <ul class="dropdown-menu">    
-            <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">Keluar</a></li>
+            <li><a class="dropdown-item" href="{% url 'authentication:logout' %}">Keluar</a></li>
           </ul>
         </li>
         {% else %}
@@ -67,7 +67,7 @@
             Tamu
           </a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{% url 'accounts:login' %}">Masuk</a></li>
+            <li><a class="dropdown-item" href="{% url 'authentication:login' %}">Masuk</a></li>
             <li><hr class="dropdown-divider bg-dark mx-2"></hr></li>
           </ul>
         </li>
