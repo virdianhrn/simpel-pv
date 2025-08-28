@@ -28,7 +28,7 @@
     </button>
     <div class="collapse navbar-collapse" id="navigation">
       <ul class="navbar-nav ms-auto">
-        {% if user.role.role == 'PL'%}
+        {% if user.profile.role == 'PL'%}
         <li class="nav-item me-2">
           <a class="nav-link" href="#">
             <em class="fa fa-clipboard-check opacity-6 me-1"></em>
@@ -41,7 +41,7 @@
             {{ user }}
           </a>
           <ul class="dropdown-menu">     
-            <li><a class="dropdown-item" href="{% url 'authentication:ssologout' %}">Keluar</a></li>
+            <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">Keluar</a></li>
           </ul>
         </li>
         {% elif user.profile.role == 'AD' %}
@@ -57,8 +57,7 @@
             {{ user }}
           </a>
           <ul class="dropdown-menu">    
-            <li><a class="dropdown-item" href="#">Ubah Password</a></li> 
-            <li><a class="dropdown-item" href="#">Keluar</a></li>
+            <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">Keluar</a></li>
           </ul>
         </li>
         {% else %}
@@ -68,10 +67,8 @@
             Tamu
           </a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">Daftar</a></li>
-            <li><a class="dropdown-item" href="#">Masuk</a></li>
+            <li><a class="dropdown-item" href="{% url 'accounts:login' %}">Masuk</a></li>
             <li><hr class="dropdown-divider bg-dark mx-2"></hr></li>
-            <li><a class="dropdown-item" href="#">Bantuan</a></li>
           </ul>
         </li>
         {% endif %}
