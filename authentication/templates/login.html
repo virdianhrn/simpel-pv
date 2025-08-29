@@ -3,47 +3,49 @@
 {% block title %} Masuk {% endblock title %}
 
 {% block content%}
-<div class="page-header align-items-center min-vh-100"
-  style="
-    background-image: url({% static 'img/bbpvp-bekasi.jpg' %});
-    background-size: cover;
-    background-position: center;
-  ">
+<div class="container-fluid">
+  <div class="row g-0 min-vh-100">
 
-  <span class="mask bg-gradient-dark opacity-6"></span>
-
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-lg-5 text-center mx-auto">
-        <h1 class="text-white mb-2 mt-5">Selamat Datang!</h1>
-        <p class="text-lead text-white-50">SIPENA - Sistem Informasi Pemberkasan dan Arsip Pelatihan Vokasi</p>
+    <div class="col-lg-7 d-none d-lg-block position-relative">
+      <div class="position-absolute top-0 start-0 w-100 h-100"
+           style="background-image: url({% static 'img/bbpvp-bekasi.jpg' %}); background-size: cover; background-position: center;">
+        <span class="mask bg-gradient-dark opacity-6"></span>
       </div>
     </div>
 
-    <div class="row mt-5 justify-content-center">
-      <div class="col-xl-5 col-lg-6 col-md-8 col-sm-11 mx-auto">
-        <div class="card z-index-0">
-          <div class="card-body">
-            <form action="" method="POST">
-              {% csrf_token %}
-
-              {% if error %}
-                <div class="alert alert-danger text-white text-center" role="alert">
-                    {{ error }}
-                </div>
-              {% endif %}
-
-              <div class="mb-3">
-                <input type="text" class="form-control" placeholder="Masukkan username anda" name="username" required />
-              </div>
-              <div class="mb-3">
-                <input type="password" class="form-control" placeholder="Masukkan password anda" name="password" required />
-              </div>
-              <div class="text-center">
-                <button type="submit" class="btn bg-gradient-dark w-100 my-4 mb-2">Masuk</button>
-              </div>
-            </form>
+    <div class="col-lg-5 d-flex flex-column justify-content-center align-items-center px-4 py-5">
+      <div class="card shadow-lg border-0" style="width: 100%; max-width: 450px;">
+        <div class="card-body p-4 p-md-5">
+          <div class="text-center mb-4">
+            <h3 class="fw-bold">Selamat Datang</h3>
+            <p class="text-muted">Masuk untuk melanjutkan ke SIPENA</p>
           </div>
+          
+          <form action="" method="POST">
+            {% csrf_token %}
+            {% if error %}
+              <div class="alert alert-danger text-center p-2 mb-3" role="alert">
+                {{ error }}
+              </div>
+            {% endif %}
+            
+            <div class="mb-3">
+              <label for="username" class="form-label">Username</label>
+              <input type="text" class="form-control" id="username" name="username" required />
+            </div>
+            
+            <div class="mb-3">
+              <div class="d-flex justify-content-between">
+                <label for="password" class="form-label">Password</label>
+                <a href="#" class="form-text text-muted small">Lupa Password?</a>
+              </div>
+              <input type="password" class="form-control" id="password" name="password" required />
+            </div>
+            
+            <div class="d-grid mt-4">
+              <button type="submit" class="btn bg-gradient-dark btn-lg">Masuk</button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
