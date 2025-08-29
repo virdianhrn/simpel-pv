@@ -8,7 +8,7 @@
   {% endif %}
 " style="z-index: 1030;">
   <div class="container">
-    <a class="navbar-brand font-weight-bolder letter-wider fs-4 pt-1" href="#">
+    <a class="navbar-brand font-weight-bolder letter-wider fs-4 pt-1" href="{% url 'main:landing_page' %}">
       SIPENA
     </a>
     <button 
@@ -30,7 +30,7 @@
       <ul class="navbar-nav ms-auto">
         {% if user.profile.role == 'PL'%}
         <li class="nav-item me-2">
-          <a class="nav-link" href="#">
+          <a class="nav-link" href="{% url 'main:dashboard' %}">
             <em class="fa fa-clipboard-check opacity-6 me-1"></em>
             Dashboard
           </a>
@@ -46,7 +46,7 @@
         </li>
         {% elif user.profile.role == 'AD' %}
         <li class="nav-item me-2">
-          <a class="nav-link" href="#">
+          <a class="nav-link" href="{% url 'main:dashboard' %}">
             <em class="fa fa-th-large opacity-6 me-1"></em>
             Dashboard
           </a>

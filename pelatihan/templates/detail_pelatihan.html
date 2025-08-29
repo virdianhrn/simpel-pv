@@ -39,7 +39,7 @@
     </div>
 </div>
 <div class="container pb-2 d-flex justify-content-end">
-    <a href="{% url 'edit' pelatihan.id %}" class="btn btn-sm btn-warning mt-3 pb-2">
+    <a href="{% url 'pelatihan:edit' pelatihan.id %}" class="btn btn-sm btn-warning mt-3 pb-2">
         <i class="fa-solid fa-edit"></i> Edit Detail Pelatihan
     </a>
 </div>
@@ -97,7 +97,7 @@
                                         <i class="fa-solid fa-upload"></i> Unggah
                                     </label>
                                     
-                                    <a href="{% url 'skip_document' pelatihan.id form.instance.id %}"
+                                    <a href="{% url 'pelatihan:skip_document' pelatihan.id form.instance.id %}"
                                     class="btn btn-danger btn-sm mt-3 skip-button">
                                         <i class="fa-solid fa-xmark"></i> Skip
                                     </a>
@@ -128,7 +128,7 @@
             </form>
             <div class="text-end pe-2">
                 {% if pelatihan.persentase_progress == 100 %}
-                    <a href="{% url 'download_merged_docs' pelatihan.id %}" class="btn btn-sm btn-success mt-3 pb-2">
+                    <a href="{% url 'pelatihan:download_merged_docs' pelatihan.id %}" class="btn btn-sm btn-success mt-3 pb-2">
                         <i class="fa-solid fa-download"></i> Download Semua Dokumen
                     </a>
                 {% else %}

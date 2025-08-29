@@ -64,7 +64,7 @@ class PelatihanDetailView(LoginRequiredMixin, View):
                     for field, errors in form.errors.items():
                         for error in errors:
                             messages.error(request, error)
-                return redirect('detail', pelatihan_id=pelatihan.id)
+                return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)
         else:
             formset = PenambahanDokumenFormSet(instance=pelatihan)
         
@@ -92,7 +92,7 @@ class PelatihanDetailView(LoginRequiredMixin, View):
             if formset.is_valid():
                 formset.save()
                 messages.success(request, 'Status dokumen berhasil diupdate!')
-                return redirect('detail', pelatihan_id=pelatihan.id)
+                return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)
             else:
                 for form in formset:
                     for field, errors in form.errors.items():
@@ -134,7 +134,7 @@ def edit(request, pelatihan_id):
         form = PelatihanForm(request.POST, instance=pelatihan)
         if form.is_valid():
             form.save()
-            return redirect('detail', pelatihan_id=pelatihan.id)
+            return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)
     else:
         form = PelatihanForm(instance=pelatihan)
   
@@ -164,9 +164,9 @@ def skip_document(request, pelatihan_id, document_id):
         
         buffer.close()
         document.save()
-        return redirect('detail', pelatihan_id=pelatihan.id)
+        return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)
 
-    return redirect('detail', pelatihan_id=pelatihan.id)
+    return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)
 
 def download_merged_docs(request, pelatihan_id):
     pelatihan = get_object_or_404(Pelatihan, pk=pelatihan_id)
