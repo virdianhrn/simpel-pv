@@ -1,32 +1,32 @@
-import random
-import string
+import uuid, os
 from django.db import models
 from django.core.exceptions import ValidationError
 from accounts.models import Profile
 
-# NOTE: Change temporary name
 NAMA_DOKUMEN_CHOICES = [
-        ('00', 'DokumenO'),
-        ('01', 'DokumenN'),
-        ('02', 'DokumenM'),
-        ('03', 'DokumenL'),
-        ('04', 'DokumenK'),
-        ('05', 'DokumenJ'),
-        ('06', 'DokumenI'),
-        ('07', 'DokumenH'),
-        ('08', 'DokumenG'),
-        ('09', 'DokumenF'),
-        ('10', 'DokumenE'),
-        ('11', 'DokumenD'),
-        ('12', 'DokumenC'),
-        ('13', 'DokumenB'),
-        ('14', 'DokumenA'),
+        ('00', 'Daftar Riwayat Hidup Peserta'),
+        ('01', 'Nominatif Peserta'),
+        ('02', 'Daftar Hadir Peserta'),
+        ('03', 'Daftar Hadir Instruktur'),
+        ('04', 'Jadwal Pelatihan'),
+        ('05', 'Daftar Jam Mengajar Instruktur'),
+        ('06', 'Daftar Nilai Akhir'),
+        ('07', 'Tanda Terima ATK Peserta + ID Card'),
+        ('08', 'Tanda Terima Pakaian Kerja/Kaos Olahraga+Training'),
+        ('09', 'Tanda Terima Sepatu Kerja'),
+        ('10', 'Tanda Terima Modul'),
+        ('11', 'Tanda Terima Bahan Pelatihan'),
+        ('12', 'Tanda Terima Konsumsi'),
+        ('13', 'Fotocopy Sertifikat Pelatihan'),
+        ('14', 'Dokumentasi Kegiatan'),
     ]
 
 def get_list_nama_dokumen():
     return [code for code, _ in NAMA_DOKUMEN_CHOICES]
 
 class Pelatihan(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
     judul = models.CharField(max_length=255, verbose_name="Judul Pelatihan")
     pic = models.ForeignKey(Profile, verbose_name="PIC Pelatihan", 
                             on_delete=models.CASCADE, related_name='pelatihan')
@@ -39,9 +39,8 @@ class Pelatihan(models.Model):
         if self.tanggal_selesai and self.tanggal_mulai and self.tanggal_selesai < self.tanggal_mulai:
             raise ValidationError("Tanggal selesai harus setelah tanggal mulai")
     
-    #NOTE: No hard code please 
     def persentase_progress(self):
-        uploaded = self.dokumen.filter(status='3').count()
+        uploaded = self.dokumen.filter(status=STATUS_DOKUMEN_TERVERIFIKASI).count()
         total = len(NAMA_DOKUMEN_CHOICES)
         return int((uploaded / total) * 100)
     
@@ -50,19 +49,32 @@ class Pelatihan(models.Model):
 
 
 
-def upload_to_dokumen(instance, _):
+def upload_to_dokumen(instance, filename):
     id_pelatihan = instance.pelatihan.id
-    random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
-    return f'dokumen/{id_pelatihan}/{instance.nama}{random_string}.pdf'
+    extension = os.path.splitext(filename)[1]
+    new_filename = f"{uuid.uuid4()}{extension}"
+    return f'dokumen/{id_pelatihan}/{new_filename}'
+
+STATUS_DOKUMEN_KOSONG = '0'
+STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI = '1'
+STATUS_DOKUMEN_PERLU_REVISI = '2'
+STATUS_DOKUMEN_TERVERIFIKASI = '3'
 
 STATUS_DOKUMEN_CHOICES = [
-        ('0', 'Kosong'),
-        ('1', 'Sedang Diverifikasi'),
-        ('2', 'Perlu Revisi'),
-        ('3', 'Terverifikasi'),
+        (STATUS_DOKUMEN_KOSONG, 'Kosong'),
+        (STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI, 'Dalam Proses Verifikasi'),
+        (STATUS_DOKUMEN_PERLU_REVISI, 'Perlu Revisi'),
+        (STATUS_DOKUMEN_TERVERIFIKASI, 'Terverifikasi'),
+]
+
+VERIFIKASI_CHOICES = [
+        (STATUS_DOKUMEN_PERLU_REVISI, 'Perlu Revisi'),
+        (STATUS_DOKUMEN_TERVERIFIKASI, 'Terverifikasi'),
 ]
 
 class PelatihanDokumen(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
     pelatihan = models.ForeignKey(Pelatihan, on_delete=models.CASCADE, 
                                   related_name='dokumen')
     
@@ -90,6 +102,9 @@ class PelatihanDokumen(models.Model):
         verbose_name="Notes Admin",
         blank=True
     )
+
+    class Meta:
+        unique_together = ('pelatihan', 'nama')
     
     def __str__(self):
         label =  dict(NAMA_DOKUMEN_CHOICES).get(self.nama)

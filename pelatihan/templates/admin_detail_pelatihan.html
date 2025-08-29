@@ -16,6 +16,7 @@
         <div class="card-body">
             <div class="d-flex justify-content-evenly flex-wrap gap-4 mb-3 text-lg">
                 <div><strong>Judul:</strong> {{ pelatihan.judul }}</div>
+                <div><strong>PIC:</strong> {{ pelatihan.pic }}</div>
                 <div><strong>Durasi:</strong> {{ pelatihan.durasi }} JP</div>
                 <div><strong>Tanggal Mulai:</strong> {{ pelatihan.tanggal_mulai|date:"d M Y" }}</div>
                 <div><strong>Tanggal Selesai:</strong> {{ pelatihan.tanggal_selesai|date:"d M Y" }}</div>
@@ -73,34 +74,33 @@
                         <tbody>
                             
                             {% for form in formset %}
-                            <tr id="dokumen-row-{{ form.instance.id }}">
+                            <tr>
                                 {{ form.id }}
                                 <td class="text-center text-sm font-weight-bold">{{ forloop.counter }}</td>
                                 <td class="px-sm-4 px-3 text-sm font-weight-bold" style="white-space:normal">{{ form.instance.get_nama_display }}</td>
                                 <td class="d-flex justify-content-center align-items-center gap-2 text-sm font-weight-bold">
                                     {% if form.instance.file_url %}
-                                        <a href="#" class="btn btn-sm btn-success view-document-btn mt-3"
+                                        <a href="#" class="btn btn-sm btn-primary edit-document-btn mt-3"
                                         data-bs-toggle="modal"
                                         data-bs-target="#documentModal"
+                                        data-document-title="{{ form.instance.get_nama_display }}"
+                                        data-document-id="{{ form.instance.id }}"
                                         data-document-url="{{ form.instance.file_url.url }}"
-                                        data-document-title="{{ form.instance.get_nama_display }}">
-                                            <i class="fa-solid fa-eye"></i> Lihat
+                                        data-pelatihan-id="{{ pelatihan.id }}">
+                                            <i class="fa-solid fa-check"></i> Lihat dan Verifikasi
                                         </a>
                                     {% else %}
                                         <a class="btn btn-sm btn-secondary disabled mt-3">
-                                            <i class="fa-solid fa-eye"></i> Lihat
+                                            <i class="fa-solid fa-check"></i> Lihat dan Verifikasi
                                         </a>
                                     {% endif %}
-
-                                    <div style="display: none;">{{ form.file_url }}</div>
-                                    <label for="{{ form.file_url.id_for_label }}" class="btn btn-sm btn-primary custom-file-label mt-3">
-                                        <i class="fa-solid fa-upload"></i> Unggah
-                                    </label>
                                     
-                                    <a href="{% url 'skip_document' pelatihan.id form.instance.id %}"
-                                    class="btn btn-danger btn-sm mt-3 skip-button">
+                                    <form method="post" action="{% url 'skip_document' pelatihan.id form.instance.id %}" class="d-flex align-items-center">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger btn-sm mt-3">
                                         <i class="fa-solid fa-xmark"></i> Skip
-                                    </a>
+                                        </button>
+                                    </form>
                                 </td>
                                 <td class="text-center text-sm font-weight-bold">
                                     {% if form.instance.status == STATUS_DOKUMEN_PERLU_REVISI %}
@@ -145,34 +145,34 @@
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="documentModalLabel">Pratinjau Dokumen</h5>
+                <h5 class="modal-title" id="documentModalLabel">Edit & Pratinjau Dokumen</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <iframe id="documentIframe" src="" frameborder="0" style="width: 100%; height: 70vh;"></iframe>
+                <div class="row">
+                    <div class="col-md-7">
+                        <h6 class="mb-2">Pratinjau Dokumen</h6>
+                        <div id="iframeContainer">
+                            <iframe id="documentPreviewIframe" src="" frameborder="0" style="width: 100%; height: 70vh;"></iframe>
+                        </div>
+                    </div>
+
+                    <div class="col-md-5">
+                        <h6 class="mb-2">Detail & Verifikasi</h6>
+                        <div id="documentFormContainer">
+                            <div class="text-center mt-5"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
-                <a id="downloadDocumentBtn" target="_blank" class="btn btn-primary">Unduh Asli</a>
+                <button type="submit" class="btn btn-primary" form="editDocumentForm">Simpan Perubahan</button>
             </div>
         </div>
-    </div>
-</div>
-
-<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
-    <div id="appToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-header" id="toastHeader">
-            <i class="fa-solid fa-circle-info me-2" id="toastIcon"></i>
-            <strong class="me-auto" id="toastTitle">Pemberitahuan</strong>
-            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-        <div class="toast-body" id="toastBody">
-            </div>
     </div>
 </div>
 {% endblock content %}
 
 {% block script %}
-<script src="{% static 'pelatihan/js/document_modal.js' %}"></script>
-<script src="{% static 'pelatihan/js/toast_unggah_dokumen.js' %}"></script>
-<script src="{% static 'pelatihan/js/skip_dokumen.js' %}"></script>
+<script src="{% static 'pelatihan/js/verifikasi_modal.js' %}"></script>
 {% endblock script %}
