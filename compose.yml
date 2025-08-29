@@ -11,7 +11,8 @@ services:
       - media_volume:/app/media
     user: root
     command: >
-      sh -c "chown -R appuser:appuser /app/media /app/staticfiles &&
+      sh -c "python manage.py collectstatic --noinput &&
+             chown -R appuser:appuser /app/media /app/staticfiles &&
              exec gosu appuser gunicorn sipena.wsgi:application --bind 0.0.0.0:8000"
 
 volumes:
