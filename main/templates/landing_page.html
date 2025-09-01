@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} Selamat Datang di SIPENA {% endblock title %}
+
+{% block content%}
+<div class="page-header position-relative" style="min-height: 100vh;">
+  <div class="position-absolute top-0 start-0 w-100 h-100" style="background-image: url({% static 'img/bbpvp-bekasi.jpg' %}); background-size: cover; background-position: center;">
+    <span class="mask bg-gradient-dark opacity-6"></span>
+  </div>
+  <div class="container position-relative z-index-1 text-center">
+    <div class="row">
+      <div class="col-lg-8 mx-auto">
+        <h1 class="text-white pt-5 mt-n5">Manajemen Dokumen Pelatihan yang Efisien</h1>
+        <p class="lead text-white mt-3">SIPENA membantu memusatkan, mengelola, dan memverifikasi semua dokumen pelatihan Anda dalam satu platform yang aman dan mudah diakses.</p>
+        <a href="{% url 'authentication:login' %}" class="btn btn-lg bg-gradient-dark btn-icon mt-4">
+          <span class="btn-inner--text">Masuk Sekarang</span>
+          <span class="btn-inner--icon"><i class="fa fa-arrow-right"></i></span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="py-5">
+  <div class="container">
+    <div class="row text-center">
+      <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <div class="icon icon-shape icon-lg bg-gradient-dark shadow rounded-circle mb-4">
+              <i class="fa fa-folder-open fa-2x"></i>
+            </div>
+            <h3>Terpusat</h3>
+            <p>Semua dokumen dari berbagai pelatihan tersimpan rapi dalam satu tempat, mudah dicari dan diakses kapan saja.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <div class="icon icon-shape icon-lg bg-gradient-dark shadow rounded-circle mb-4">
+              <i class="fa fa-clipboard-check fa-2x"></i>
+            </div>
+            <h3>Verifikasi Mudah</h3>
+            <p>Proses verifikasi dokumen menjadi lebih cepat dan transparan dengan alur kerja yang jelas untuk admin dan penyelenggara.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <div class="icon icon-shape icon-lg bg-gradient-dark shadow rounded-circle mb-4">
+              <i class="fa fa-shield-alt fa-2x"></i>
+            </div>
+            <h3>Aman & Terpantau</h3>
+            <p>Lacak progres kelengkapan dokumen dengan mudah dan pastikan semua data tersimpan dengan aman.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer py-3">
+  <div class="container">
+    <div class="row">
+      <div class="col-12 text-center">
+        <p class="text-secondary mb-0">
+          &copy; {% now "Y" %} SIPENA. All rights reserved.
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>
+{% endblock %}

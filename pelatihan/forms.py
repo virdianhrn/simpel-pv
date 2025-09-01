@@ -1,7 +1,7 @@
-from .models import Pelatihan, PelatihanDokumen
-from .models import NAMA_DOKUMEN_CHOICES, STATUS_DOKUMEN_CHOICES
+from .models import Pelatihan, PelatihanDokumen, VERIFIKASI_CHOICES
 from django import forms
-
+from django.core.exceptions import ValidationError
+from django.utils.html import format_html
 class PelatihanForm(forms.ModelForm):
     tanggal_mulai = forms.DateField(
         widget=forms.DateInput(attrs={'type': 'date'})
@@ -18,29 +18,30 @@ class PelatihanForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
 class PenambahanDokumenForm(forms.ModelForm):
-    nama = forms.ChoiceField(
-        choices=NAMA_DOKUMEN_CHOICES,
-        widget=forms.Select(attrs={'readonly': 'readonly'}),
-    )
-
-    status = forms.ChoiceField(
-        choices=STATUS_DOKUMEN_CHOICES,
-        widget=forms.Select(attrs={'readonly': 'readonly'}),
-    )
     class Meta:
         model = PelatihanDokumen
-        fields = ['nama', 'file_url', 'status', 'notes']
+        fields = ['file_url']
         widgets = {
-            'file_url': forms.ClearableFileInput(attrs={
-                'onchange': 'this.form.submit();'
+            'file_url': forms.FileInput(attrs={
+                'style': 'display:none;',
+                'onchange': 'this.form.submit();',
+                'accept': '.pdf'
             }),
         }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['nama'].disabled = True
-        self.fields['status'].disabled = True
-        self.fields['notes'].disabled = True
+    def clean_file_url(self):
+        """Custom validation to ensure the uploaded file is less than 5MB."""
+        file = self.cleaned_data.get('file_url', False)
+        
+        if file:
+            # Define the maximum size in bytes (5MB)
+            max_size = 5 * 1024 * 1024
+            
+            if file.size > max_size:
+                raise ValidationError(
+                    f'Ukuran file tidak boleh melebihi 5 MB.'
+                )
+                
+        return file
 
 PenambahanDokumenFormSet = forms.inlineformset_factory(
     Pelatihan,
@@ -49,3 +50,22 @@ PenambahanDokumenFormSet = forms.inlineformset_factory(
     extra=0,
     can_delete=False,
 )
+
+class VerifikasiDokumenForm(forms.ModelForm):
+    status = forms.ChoiceField(
+        choices = VERIFIKASI_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select', 'rows': 3})
+    )
+    notes = forms.CharField(
+        required=True,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3})
+    )
+    class Meta:
+        model = PelatihanDokumen
+        fields = ['status', 'notes']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['notes'].label = format_html(
+            'Notes <span class="text-danger">*</span>', 
+        )

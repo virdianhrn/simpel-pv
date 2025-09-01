@@ -1,0 +1,70 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    
+    <!-- CSS only -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0" crossorigin="anonymous">
+    <!-- JavaScript Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-p34f1UUtsS3wqzfto5wAAmdvj+osOnFyQFpp4Ua3gs/ZVWx6oOypYoCJhGGScy+8" crossorigin="anonymous"></script>
+
+    <!-- Favicon -->
+    
+
+    <!-- Webpage Title -->
+    <title>
+      {% block title %}{% endblock %} - Sistem Informasi Pemberkasan dan Arsip Pelatihan Vokasi
+    </title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Icons -->
+    <link href="{% static 'css/nucleo-icons.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/nucleo-svg.css' %}" rel="stylesheet" />
+
+    <!-- CSS Files -->
+    <link id="pagestyle" href="{% static 'css/argon-dashboard.css' %}" rel="stylesheet" />
+
+    <!-- Specific CSS goes HERE -->
+    {% block stylesheets %} {% endblock stylesheets %}
+
+    <!-- Font Awesome Icons -->
+    <script src="https://kit.fontawesome.com/ef6c773c26.js" crossorigin="anonymous"></script>
+
+    {% block meta %} {% endblock meta %}
+  </head>
+
+  <body data-messages="{{ messages_json|default:'[]' }}" class="bg-gray-100">
+    <!-- Navigation -->
+    {% block navbar %}
+      {% include 'navbar.html' with variant=variant %}
+    {% endblock navbar %}
+    <!-- End of navigation -->
+
+    <!-- Content Header-->
+    {% block page_header_content %}
+    {% endblock page_header_content %}
+    <!-- End of Content Header-->
+
+    <!-- Content -->
+    <main class="main-content" id="content">
+      {% block content %} {% endblock content %}
+    </main>
+    <!-- End of content -->
+
+    <!-- Core Scripts -->
+    <script src="{% static 'js/core/popper.min.js' %}"></script>
+    <script src="{% static 'js/core/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/plugins/perfect-scrollbar.min.js' %}"></script>
+    <script src="{% static 'js/plugins/smooth-scrollbar.min.js' %}"></script>
+    <script src="{% static 'js/argon-dashboard.min.js' %}"></script>
+
+    <!-- Additional Scripts -->
+    {% block script %} {% endblock script %}
+  </body>
+</html>

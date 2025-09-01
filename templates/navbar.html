@@ -1,0 +1,78 @@
+{% load static %}
+
+<nav class="navbar navbar-expand-lg position-absolute w-100 py-2 shadow-none 
+  {% if variant == 'light' %}
+    navbar-light bg-white
+  {% else %}
+    d-none
+  {% endif %}
+" style="z-index: 1030;">
+  <div class="container">
+    <a class="navbar-brand font-weight-bolder letter-wider fs-4 pt-1" href="#">
+      SIPENA
+    </a>
+    <button 
+      class="navbar-toggler shadow-none ms-2"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navigation"
+      aria-controls="navigation"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon mt-2">
+        <span class="navbar-toggler-bar bar1"></span>
+        <span class="navbar-toggler-bar bar2"></span>
+        <span class="navbar-toggler-bar bar3"></span>
+      </span>
+    </button>
+    <div class="collapse navbar-collapse" id="navigation">
+      <ul class="navbar-nav ms-auto">
+        {% if user.profile.role == 'PL'%}
+        <li class="nav-item me-2">
+          <a class="nav-link" href="#">
+            <em class="fa fa-clipboard-check opacity-6 me-1"></em>
+            Dashboard
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <em class="fa fa-user opacity-6 me-1"></em>
+            {{ user }}
+          </a>
+          <ul class="dropdown-menu">     
+            <li><a class="dropdown-item" href="{% url 'authentication:logout' %}">Keluar</a></li>
+          </ul>
+        </li>
+        {% elif user.profile.role == 'AD' %}
+        <li class="nav-item me-2">
+          <a class="nav-link" href="#">
+            <em class="fa fa-th-large opacity-6 me-1"></em>
+            Dashboard
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <em class="fa fa-user opacity-6 me-1"></em>
+            {{ user }}
+          </a>
+          <ul class="dropdown-menu">    
+            <li><a class="dropdown-item" href="{% url 'authentication:logout' %}">Keluar</a></li>
+          </ul>
+        </li>
+        {% else %}
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+            <em class="fa fa-user opacity-6 me-1"></em>
+            Tamu
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{% url 'authentication:login' %}">Masuk</a></li>
+            <li><hr class="dropdown-divider bg-dark mx-2"></hr></li>
+          </ul>
+        </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
