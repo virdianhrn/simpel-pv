@@ -1,11 +1,11 @@
-import random, string
+import os, uuid
 from django.db import models
 from django.contrib.auth.models import User
 
 def upload_to_foto(instance, filename):
     extension = os.path.splitext(filename)[1]
     new_filename = f"{uuid.uuid4()}{extension}"
-    return f'foto_user/{uuid.uuid4()}{extension}'
+    return f'foto_user/{new_filename}'
 
 class Profile(models.Model):
     ADMIN = "AD"
