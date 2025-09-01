@@ -25,7 +25,6 @@ urlpatterns = [
     path('', include('authentication.urls')),
     path("accounts/", include("accounts.urls")),
     path("pelatihan/", include("pelatihan.urls")),
-    path("dashboard/", include("dashboard.urls")),
 ]
 
 if settings.DEBUG:
