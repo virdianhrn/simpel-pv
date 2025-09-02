@@ -48,4 +48,7 @@ def delete_user_view(request, user_id):
             messages.success(request, f"Pengguna '{user_fullname}' berhasil dihapus.")
             return redirect('accounts:manage')
 
-    return redirect('accounts:manage')
+    context = {
+        'target_user': target_user
+    }
+    return render(request, 'accounts/delete_account_confirmation.html', context)

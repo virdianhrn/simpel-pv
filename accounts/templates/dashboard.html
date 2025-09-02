@@ -62,13 +62,9 @@
                 <a href="#" class="btn btn-sm btn-warning" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Profil"> {# TODO: Link to 'edit_profile' view #}
                   <i class="fa fa-edit"></i>
                 </a>
-                <button type="button" class="btn btn-sm btn-danger" 
-                        data-bs-toggle="modal" 
-                        data-bs-target="#deleteConfirmationModal"
-                        data-user-name="{{ user_obj.get_full_name }}"
-                        data-user-delete-url="{% url 'accounts:delete_user' user_obj.id %}">
+                <a href="{% url 'accounts:delete_user' user_obj.id %}" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus Pengguna">
                   <i class="fa fa-trash"></i>
-                </button>
+                </a>
               </td>
             </tr>
             {% endfor %}
@@ -84,31 +80,4 @@
     </div>
   </div>
 </div>
-
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="deleteModalLabel">Konfirmasi Hapus Pengguna</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <p>Apakah Anda yakin ingin menghapus pengguna: <strong id="userNameToDelete"></strong>?</p>
-        <p class="text-danger small">Tindakan ini akan menghapus akun dan profil terkait secara permanen.</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-        <form id="deleteForm" method="POST" action="">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-danger">Ya, Hapus</button>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
 {% endblock content %}
-
-{% block script %}
-<script src="{% static 'accounts/js/delete_user.js' %}"></script>
-{% endblock script %}
