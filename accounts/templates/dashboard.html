@@ -66,7 +66,7 @@
                         data-bs-toggle="modal" 
                         data-bs-target="#deleteConfirmationModal"
                         data-user-name="{{ user_obj.get_full_name }}"
-                        data-user-delete-url="#"> {# TODO: Link to 'delete_user' view #}
+                        data-user-delete-url="{% url 'accounts:delete_user' user_obj.id %}">
                   <i class="fa fa-trash"></i>
                 </button>
               </td>

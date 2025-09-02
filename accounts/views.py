@@ -1,6 +1,8 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from .models import Profile
 from django.contrib.auth.models import User
+from django.contrib import messages
+from django.contrib.auth import logout
 
 def my_profile_view(request):
     profile = get_object_or_404(Profile, user=request.user)
@@ -28,3 +30,22 @@ def manage(request):
         'user_list': user_list,
     }
     return render(request, 'dashboard.html', context)
+
+def delete_user_view(request, user_id):
+    target_user = get_object_or_404(User, id=user_id)
+    is_own_account = (request.user == target_user)
+
+    if request.method == 'POST':
+        user_fullname = target_user.get_full_name()
+        
+        if is_own_account:
+            logout(request)
+            target_user.delete()
+            return redirect('main:landing_page')
+        
+        else:
+            target_user.delete()
+            messages.success(request, f"Pengguna '{user_fullname}' berhasil dihapus.")
+            return redirect('accounts:manage')
+
+    return redirect('accounts:manage')
