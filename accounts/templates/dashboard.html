@@ -53,7 +53,7 @@
                 <span class="badge bg-gradient-primary">{{ user_obj.profile.get_role_display }}</span>
               </td>
               <td class="align-middle text-center">
-                <a href="{% url 'accounts:profile' %}" class="btn btn-sm btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat Profil">
+                <a href="{% url 'accounts:user_profile' user_obj.id %}" class="btn btn-sm btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat Profil">
                   <i class="fa fa-eye"></i>
                 </a>
                 <a href="#" class="btn btn-sm btn-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah Role"> {# TODO: Link to 'change_role' view #}

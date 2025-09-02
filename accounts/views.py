@@ -2,11 +2,22 @@ from django.shortcuts import render, get_object_or_404
 from .models import Profile
 from django.contrib.auth.models import User
 
-def profile_view(request):
+def my_profile_view(request):
     profile = get_object_or_404(Profile, user=request.user)
     context = {
         'profile': profile,
         'user': request.user
+    }
+    return render(request, 'profile.html', context)
+
+
+def user_profile_view(request, user_id):
+    target_user = get_object_or_404(User, id=user_id)
+    profile = target_user.profile
+
+    context = {
+        'profile': profile,
+        'user': target_user
     }
     return render(request, 'profile.html', context)
 
