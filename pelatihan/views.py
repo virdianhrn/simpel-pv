@@ -138,7 +138,7 @@ def skip_document(request, pelatihan_id, document_id):
         
         buffer.close()
         document.save()
-        messages.success(request, f"Dokumen '{document.nama}' berhasil di-skip.")
+        messages.success(request, f"Dokumen '{document.get_nama_display()}' berhasil di-skip.")
         return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)
 
     return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)
