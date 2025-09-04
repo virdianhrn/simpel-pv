@@ -4,20 +4,28 @@ from django.core.exceptions import ValidationError
 from django.utils.html import format_html
 
 DocStatus = PelatihanDokumen.DocumentStatus
+from django import forms
+from .models import Pelatihan
+
 class PelatihanForm(forms.ModelForm):
-    tanggal_mulai = forms.DateField(
-        widget=forms.DateInput(attrs={'type': 'date'})
-    )
-    
-    tanggal_selesai = forms.DateField(
-        widget=forms.DateInput(attrs={'type': 'date'})
-    )
     class Meta:
         model = Pelatihan
-        fields = ['judul', 'tanggal_mulai', 'tanggal_selesai', 'durasi']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        fields = ['judul', 'pic', 'tanggal_mulai', 'tanggal_selesai', 'durasi']
+        
+        # Add widgets for better user experience
+        widgets = {
+            'judul': forms.TextInput(attrs={'class': 'form-control'}),
+            'pic': forms.Select(attrs={'class': 'form-control'}),
+            'tanggal_mulai': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'tanggal_selesai': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'durasi': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+        
+        # Optional: Customize labels
+        labels = {
+            'pic': 'PIC Penyelenggara',
+            'durasi': 'Durasi (JP)',
+        }
 
 class DokumenForm(forms.ModelForm):
     class Meta:

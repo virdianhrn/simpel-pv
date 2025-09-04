@@ -27,7 +27,7 @@ def verifikasi_dokumen(request, pelatihan_id, document_id):
     form = VerifikasiDokumenForm(instance=document)
     return render(request, 'form_verifikasi.html', {'form': form, 'document': document})
 
-class PelatihanDetailView(LoginRequiredMixin, View):
+class DetailView(LoginRequiredMixin, View):
 
     def dispatch(self, request, *args, **kwargs):
         """
@@ -84,6 +84,21 @@ class PelatihanDetailView(LoginRequiredMixin, View):
         
         # Always redirect back to the same page after a POST
         return redirect('pelatihan:detail', pelatihan_id=self.pelatihan.id)
+
+def add(request):
+    if request.method == 'POST':
+        form = PelatihanForm(request.POST)
+        if form.is_valid():
+            pelatihan = form.save()
+            messages.success(request, f"Pelatihan '{pelatihan.judul}' berhasil ditambahkan.")
+            return redirect('main:dashboard')
+    else:
+        form = PelatihanForm()
+
+    context = {
+        'form': form
+    }
+    return render(request, 'add_pelatihan.html', context)
 
 def edit(request, pelatihan_id):
     #TODO: Role-based access control and date validation
