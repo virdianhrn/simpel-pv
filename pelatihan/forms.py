@@ -17,7 +17,7 @@ class PelatihanForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-class PenambahanDokumenForm(forms.ModelForm):
+class DokumenForm(forms.ModelForm):
     class Meta:
         model = PelatihanDokumen
         fields = ['file_url']
@@ -43,10 +43,10 @@ class PenambahanDokumenForm(forms.ModelForm):
                 
         return file
 
-PenambahanDokumenFormSet = forms.inlineformset_factory(
+DokumenFormSet = forms.inlineformset_factory(
     Pelatihan,
     PelatihanDokumen,
-    form=PenambahanDokumenForm,
+    form=DokumenForm,
     extra=0,
     can_delete=False,
 )

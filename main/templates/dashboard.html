@@ -44,7 +44,11 @@
             {% for pelatihan in pelatihan_list %}
             <tr>
               <td class="ps-4">
-                <p class="text-sm font-weight-bold mb-0">{{ pelatihan.judul }}</p>
+                <p class="text-sm font-weight-bold mb-0">
+                  <a href="{% url 'pelatihan:detail' pelatihan.id %}">
+                    {{ pelatihan.judul }}
+                  </a>
+                </p>
                 <p class="text-xs text-secondary mb-0">{{ pelatihan.durasi }} JP</p>
               </td>
               <td class="align-middle text-center">
@@ -53,15 +57,13 @@
               <td class="align-middle text-center">
                 <span class="text-secondary text-sm font-weight-bold">{{ pelatihan.tanggal_mulai|date:"d M Y" }}</span>
               </td>
-              <td class="align-middle text-center">
-                <div class="progress-wrapper w-75 mx-auto">
-                  <div class="progress-info">
-                    <div class="progress-percentage">
-                      <span class="text-sm font-weight-bold">{{ pelatihan.persentase_progress }}%</span>
-                    </div>
-                  </div>
-                  <div class="progress" style="height: 8px;">
-                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ pelatihan.persentase_progress }}%;" aria-valuenow="{{ pelatihan.persentase_progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+              <td class="align-middle">
+                <div class="d-flex align-items-center justify-content-center px-2">
+                  <span class="me-2 text-sm font-weight-bold">{{ pelatihan.persentase_progress }}%</span>
+                  <div class="progress w-100" style="height: 8px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ pelatihan.persentase_progress }}%;" 
+                         aria-valuenow="{{ pelatihan.persentase_progress }}" 
+                         aria-valuemin="0" aria-valuemax="100"></div>
                   </div>
                 </div>
               </td>

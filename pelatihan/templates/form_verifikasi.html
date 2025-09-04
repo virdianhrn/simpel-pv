@@ -1,5 +1,5 @@
 <form id="editDocumentForm" method="post" enctype="multipart/form-data" 
-      action="{% url 'verifikasi_dokumen' document.pelatihan.id document.id %}">
+      action="{% url 'pelatihan:verifikasi_dokumen' document.pelatihan.id document.id %}">
     {% csrf_token %}
     
     <div class="mb-3">
