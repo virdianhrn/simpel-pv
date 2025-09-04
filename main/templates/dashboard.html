@@ -36,7 +36,9 @@
           <thead class="table-dark">
             <tr>
               <th class="text-uppercase text-xs font-weight-bolder ps-4">Judul Pelatihan</th>
+              {% if user.profile.is_admin %}
               <th class="text-center text-uppercase text-xs font-weight-bolder">PIC</th>
+              {% endif %}
               <th class="text-center text-uppercase text-xs font-weight-bolder">Tanggal Mulai</th>
               <th class="text-center text-uppercase text-xs font-weight-bolder">Tanggal Selesai</th>
               <th class="text-center text-uppercase text-xs font-weight-bolder">Progress Dokumen</th>
@@ -54,9 +56,11 @@
                 </p>
                 <p class="text-xs text-secondary mb-0">{{ pelatihan.durasi }} JP</p>
               </td>
+              {% if user.profile.is_admin %}
               <td class="align-middle text-center">
                 <p class="text-sm font-weight-bold mb-0">{{ pelatihan.pic }}</p>
               </td>
+              {% endif %}
               <td class="align-middle text-center">
                 <span class="text-secondary text-sm font-weight-bold">{{ pelatihan.tanggal_mulai|date:"d M Y" }}</span>
               </td>
@@ -94,7 +98,7 @@
             {# This part shows a message if the list is empty #}
             {% if not pelatihan_list %}
             <tr>
-              <td colspan="5" class="text-center py-4 text-muted">Belum ada data pelatihan.</td>
+              <td colspan="{% if user.profile.is_admin %}6{% else %}5{% endif %}" class="text-center py-4 text-muted">Belum ada data pelatihan.</td>
             </tr>
             {% endif %}
           </tbody>
