@@ -14,9 +14,11 @@
   <div class="container">
     <div class="d-flex justify-content-between align-items-center">
       <h1 class="mb-0">Manajemen Pelatihan</h1>
-      <a href="#" class="btn bg-brand btn-success">
-        <i class="fa fa-plus me-2"></i> Tambah Pelatihan Baru
-      </a>
+      {% if user.profile.is_admin %}
+        <a href="{% url 'pelatihan:add' %}" class="btn bg-brand btn-success">
+          <i class="fa fa-plus me-2"></i> Tambah Pelatihan Baru
+        </a>
+      {% endif %}
     </div>
   </div>
 </div>
@@ -36,6 +38,7 @@
               <th class="text-uppercase text-xs font-weight-bolder ps-4">Judul Pelatihan</th>
               <th class="text-center text-uppercase text-xs font-weight-bolder">PIC</th>
               <th class="text-center text-uppercase text-xs font-weight-bolder">Tanggal Mulai</th>
+              <th class="text-center text-uppercase text-xs font-weight-bolder">Tanggal Selesai</th>
               <th class="text-center text-uppercase text-xs font-weight-bolder">Progress Dokumen</th>
               <th class="text-center text-uppercase text-xs font-weight-bolder">Aksi</th>
             </tr>
@@ -56,6 +59,9 @@
               </td>
               <td class="align-middle text-center">
                 <span class="text-secondary text-sm font-weight-bold">{{ pelatihan.tanggal_mulai|date:"d M Y" }}</span>
+              </td>
+              <td class="align-middle text-center">
+                <span class="text-secondary text-sm font-weight-bold">{{ pelatihan.tanggal_selesai|date:"d M Y" }}</span>
               </td>
               <td class="align-middle">
                 <div class="d-flex align-items-center justify-content-center px-2">
