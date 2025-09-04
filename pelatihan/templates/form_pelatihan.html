@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  {% if pelatihan %}Edit Pelatihan{% else %}Tambah Pelatihan Baru{% endif %}
+{% endblock title %}
+
+{% block navbar %}
+{% with variant='light' %}
+{{ block.super }}
+{% endwith %}
+{% endblock navbar %}
+
+{% block page_header_content %}
+{% endblock page_header_content %}
+
+{% block content %}
+<div class="page-header pt-7 pb-5 bg-white-blue">
+  <div class="container">
+    {% if pelatihan %}
+      <h1 class="mb-0">Edit Pelatihan</h1>
+      <p class="text-muted">Memperbarui detail untuk: <strong>{{ pelatihan.judul }}</strong></p>
+    {% else %}
+      <h1 class="mb-0">Tambah Pelatihan Baru</h1>
+      <p class="text-muted">Isi detail di bawah ini untuk membuat data pelatihan baru.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="container mt-n5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card mb-4">
+        <div class="card-body p-4">
+          <form method="POST">
+            {% csrf_token %}
+            
+            {{ form.as_p }}
+
+            <div class="d-flex justify-content-end mt-4">
+              <a href="{% url 'main:dashboard' %}" class="btn btn-secondary me-2">Batal</a>
+              <button type="submit" class="btn bg-brand btn-success">
+                {% if pelatihan %}Simpan Perubahan{% else %}Simpan Pelatihan{% endif %}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

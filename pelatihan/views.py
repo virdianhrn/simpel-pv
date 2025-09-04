@@ -98,24 +98,25 @@ def add(request):
     context = {
         'form': form
     }
-    return render(request, 'add_pelatihan.html', context)
+    return render(request, 'form_pelatihan.html', context)
 
 def edit(request, pelatihan_id):
-    #TODO: Role-based access control and date validation
     pelatihan = get_object_or_404(Pelatihan, id=pelatihan_id)
+
     if request.method == 'POST':
         form = PelatihanForm(request.POST, instance=pelatihan)
         if form.is_valid():
             form.save()
+            messages.success(request, f"Pelatihan '{pelatihan.judul}' berhasil diperbarui.")
             return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)
     else:
         form = PelatihanForm(instance=pelatihan)
-  
+
     context = {
-        'pelatihan': pelatihan,
-        'form': form
+        'form': form,
+        'pelatihan': pelatihan
     }
-    return render(request, 'edit_pelatihan.html', context)
+    return render(request, 'form_pelatihan.html', context)
 
 def skip_document(request, pelatihan_id, document_id):
     pelatihan = get_object_or_404(Pelatihan, pk=pelatihan_id)
@@ -137,6 +138,7 @@ def skip_document(request, pelatihan_id, document_id):
         
         buffer.close()
         document.save()
+        messages.success(request, f"Dokumen '{document.nama}' berhasil di-skip.")
         return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)
 
     return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)

@@ -8,11 +8,19 @@ from django import forms
 from .models import Pelatihan
 
 class PelatihanForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        # Get the user from the keyword arguments before initializing
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+        # If a user is passed and they are NOT an admin, disable the 'pic' field.
+        if self.user and not self.user.profile.is_admin:
+            if 'pic' in self.fields:
+                del self.fields['pic']
+
     class Meta:
         model = Pelatihan
         fields = ['judul', 'pic', 'tanggal_mulai', 'tanggal_selesai', 'durasi']
-        
-        # Add widgets for better user experience
         widgets = {
             'judul': forms.TextInput(attrs={'class': 'form-control'}),
             'pic': forms.Select(attrs={'class': 'form-control'}),
@@ -20,8 +28,6 @@ class PelatihanForm(forms.ModelForm):
             'tanggal_selesai': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'durasi': forms.NumberInput(attrs={'class': 'form-control'}),
         }
-        
-        # Optional: Customize labels
         labels = {
             'pic': 'PIC Penyelenggara',
             'durasi': 'Durasi (JP)',
