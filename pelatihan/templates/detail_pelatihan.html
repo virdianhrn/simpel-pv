@@ -43,6 +43,10 @@
     </div>
 </div>
 <div class="container pb-2 d-flex justify-content-end">
+    <a href="{% url 'main:dashboard' %}" class="btn btn-sm btn-secondary mt-3 pb-2 me-2">
+        <i class="fa fa-arrow-left"></i> Kembali ke Daftar
+    </a>
+
     <a href="{% url 'pelatihan:edit' pelatihan.id %}" class="btn btn-sm btn-warning mt-3 pb-2">
         <i class="fa-solid fa-edit"></i> Edit Detail Pelatihan
     </a>
