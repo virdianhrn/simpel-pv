@@ -68,17 +68,9 @@ class PelatihanDetailView(LoginRequiredMixin, View):
         else:
             formset = PenambahanDokumenFormSet(instance=pelatihan)
         
-        message_list = []
-        for message in messages.get_messages(request):
-            message_list.append({
-                'body': str(message),
-                'tags': message.tags,
-            })
-        
         context = {
             'pelatihan': pelatihan,
             'formset': formset,
-            'messages_json': json.dumps(message_list),
             'STATUS_DOKUMEN_KOSONG': STATUS_DOKUMEN_KOSONG,
             'STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI': STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI,
             'STATUS_DOKUMEN_PERLU_REVISI': STATUS_DOKUMEN_PERLU_REVISI,
@@ -100,18 +92,10 @@ class PelatihanDetailView(LoginRequiredMixin, View):
                             messages.error(request, error)
         else:
             formset = PenambahanDokumenFormSet(instance=pelatihan)
-        
-        message_list = []
-        for message in messages.get_messages(request):
-            message_list.append({
-                'body': str(message),
-                'tags': message.tags,
-            })
 
         context = {
             'pelatihan': pelatihan,
             'formset': formset,
-            'messages_json': json.dumps(message_list),
             'STATUS_DOKUMEN_KOSONG': STATUS_DOKUMEN_KOSONG,
             'STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI': STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI,
             'STATUS_DOKUMEN_PERLU_REVISI': STATUS_DOKUMEN_PERLU_REVISI,
