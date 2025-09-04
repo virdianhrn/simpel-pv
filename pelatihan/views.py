@@ -87,13 +87,13 @@ class DetailView(LoginRequiredMixin, View):
 
 def add(request):
     if request.method == 'POST':
-        form = PelatihanForm(request.POST)
+        form = PelatihanForm(request.POST, user=request.user)
         if form.is_valid():
             pelatihan = form.save()
             messages.success(request, f"Pelatihan '{pelatihan.judul}' berhasil ditambahkan.")
             return redirect('main:dashboard')
     else:
-        form = PelatihanForm()
+        form = PelatihanForm(user=request.user)
 
     context = {
         'form': form
@@ -104,13 +104,13 @@ def edit(request, pelatihan_id):
     pelatihan = get_object_or_404(Pelatihan, id=pelatihan_id)
 
     if request.method == 'POST':
-        form = PelatihanForm(request.POST, instance=pelatihan)
+        form = PelatihanForm(request.POST, instance=pelatihan, user=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, f"Pelatihan '{pelatihan.judul}' berhasil diperbarui.")
             return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)
     else:
-        form = PelatihanForm(instance=pelatihan)
+        form = PelatihanForm(instance=pelatihan, user=request.user)
 
     context = {
         'form': form,
