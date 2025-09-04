@@ -1,7 +1,6 @@
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Pelatihan, PelatihanDokumen
-from .models import STATUS_DOKUMEN_KOSONG, STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI, STATUS_DOKUMEN_PERLU_REVISI, STATUS_DOKUMEN_TERVERIFIKASI
 from .forms import DokumenFormSet, PelatihanForm, VerifikasiDokumenForm
 from django.core.files.base import ContentFile
 from io import BytesIO
@@ -11,6 +10,8 @@ import json
 from django.views import View
 from django.http import HttpResponseForbidden
 from django.contrib.auth.mixins import LoginRequiredMixin
+
+DocStatus = PelatihanDokumen.DocumentStatus
 
 def verifikasi_dokumen(request, pelatihan_id, document_id):
     document = get_object_or_404(PelatihanDokumen, pk=document_id)
@@ -48,10 +49,10 @@ class PelatihanDetailView(LoginRequiredMixin, View):
         context = {
             'pelatihan': self.pelatihan,
             'formset': formset,
-            'STATUS_DOKUMEN_KOSONG': STATUS_DOKUMEN_KOSONG,
-            'STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI': STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI,
-            'STATUS_DOKUMEN_PERLU_REVISI': STATUS_DOKUMEN_PERLU_REVISI,
-            'STATUS_DOKUMEN_TERVERIFIKASI': STATUS_DOKUMEN_TERVERIFIKASI,
+            'STATUS_DOKUMEN_KOSONG': DocStatus.KOSONG,
+            'STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI': DocStatus.DALAM_PROSES_VERIFIKASI,
+            'STATUS_DOKUMEN_PERLU_REVISI': DocStatus.PERLU_REVISI,
+            'STATUS_DOKUMEN_TERVERIFIKASI': DocStatus.TERVERIFIKASI,
         }
         # Render the single, merged template
         return render(request, 'detail_pelatihan.html', context)
@@ -70,7 +71,7 @@ class PelatihanDetailView(LoginRequiredMixin, View):
             else:
                 for form in formset:
                     if 'file_url' in form.changed_data:
-                        form.instance.status = STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI
+                        form.instance.status = DocStatus.DALAM_PROSES_VERIFIKASI
                         break
                 formset.save()
                 messages.success(request, 'Dokumen berhasil diunggah!')
@@ -114,9 +115,9 @@ def skip_document(request, pelatihan_id, document_id):
         buffer.seek(0)
 
         if request.user.profile.is_admin:
-            document.status = STATUS_DOKUMEN_TERVERIFIKASI
+            document.status = DocStatus.TERVERIFIKASI
         else:
-            document.status = STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI
+            document.status = DocStatus.DALAM_PROSES_VERIFIKASI
         document.file_url.save('blank.pdf', ContentFile(buffer.read()))
         
         buffer.close()

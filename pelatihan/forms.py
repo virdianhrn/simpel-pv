@@ -1,7 +1,9 @@
-from .models import Pelatihan, PelatihanDokumen, VERIFIKASI_CHOICES
+from .models import Pelatihan, PelatihanDokumen
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.html import format_html
+
+DocStatus = PelatihanDokumen.DocumentStatus
 class PelatihanForm(forms.ModelForm):
     tanggal_mulai = forms.DateField(
         widget=forms.DateInput(attrs={'type': 'date'})
@@ -52,6 +54,10 @@ DokumenFormSet = forms.inlineformset_factory(
 )
 
 class VerifikasiDokumenForm(forms.ModelForm):
+    VERIFIKASI_CHOICES = [
+        (DocStatus.PERLU_REVISI, DocStatus.PERLU_REVISI.label),
+        (DocStatus.TERVERIFIKASI, DocStatus.TERVERIFIKASI.label),
+    ]
     status = forms.ChoiceField(
         choices = VERIFIKASI_CHOICES,
         widget=forms.Select(attrs={'class': 'form-select', 'rows': 3})
