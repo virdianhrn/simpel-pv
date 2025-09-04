@@ -1,23 +1,39 @@
-from .models import Pelatihan, PelatihanDokumen, VERIFIKASI_CHOICES
+from .models import Pelatihan, PelatihanDokumen
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.html import format_html
-class PelatihanForm(forms.ModelForm):
-    tanggal_mulai = forms.DateField(
-        widget=forms.DateInput(attrs={'type': 'date'})
-    )
-    
-    tanggal_selesai = forms.DateField(
-        widget=forms.DateInput(attrs={'type': 'date'})
-    )
-    class Meta:
-        model = Pelatihan
-        fields = ['judul', 'tanggal_mulai', 'tanggal_selesai', 'durasi']
 
+DocStatus = PelatihanDokumen.DocumentStatus
+from django import forms
+from .models import Pelatihan
+
+class PelatihanForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
+        # Get the user from the keyword arguments before initializing
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
-class PenambahanDokumenForm(forms.ModelForm):
+        # If a user is passed and they are NOT an admin, disable the 'pic' field.
+        if self.user and not self.user.profile.is_admin:
+            if 'pic' in self.fields:
+                del self.fields['pic']
+
+    class Meta:
+        model = Pelatihan
+        fields = ['judul', 'pic', 'tanggal_mulai', 'tanggal_selesai', 'durasi']
+        widgets = {
+            'judul': forms.TextInput(attrs={'class': 'form-control'}),
+            'pic': forms.Select(attrs={'class': 'form-control'}),
+            'tanggal_mulai': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'tanggal_selesai': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'durasi': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'pic': 'PIC Penyelenggara',
+            'durasi': 'Durasi (JP)',
+        }
+
+class DokumenForm(forms.ModelForm):
     class Meta:
         model = PelatihanDokumen
         fields = ['file_url']
@@ -43,15 +59,19 @@ class PenambahanDokumenForm(forms.ModelForm):
                 
         return file
 
-PenambahanDokumenFormSet = forms.inlineformset_factory(
+DokumenFormSet = forms.inlineformset_factory(
     Pelatihan,
     PelatihanDokumen,
-    form=PenambahanDokumenForm,
+    form=DokumenForm,
     extra=0,
     can_delete=False,
 )
 
 class VerifikasiDokumenForm(forms.ModelForm):
+    VERIFIKASI_CHOICES = [
+        (DocStatus.PERLU_REVISI, DocStatus.PERLU_REVISI.label),
+        (DocStatus.TERVERIFIKASI, DocStatus.TERVERIFIKASI.label),
+    ]
     status = forms.ChoiceField(
         choices = VERIFIKASI_CHOICES,
         widget=forms.Select(attrs={'class': 'form-select', 'rows': 3})

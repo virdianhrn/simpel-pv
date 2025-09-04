@@ -16,6 +16,10 @@
         <div class="card-body">
             <div class="d-flex justify-content-evenly flex-wrap gap-4 mb-3 text-lg">
                 <div><strong>Judul:</strong> {{ pelatihan.judul }}</div>
+                {# --- Conditional Block for Admin --- #}
+                {% if user.profile.is_admin %}
+                <div><strong>PIC:</strong> {{ pelatihan.pic }}</div>
+                {% endif %}
                 <div><strong>Durasi:</strong> {{ pelatihan.durasi }} JP</div>
                 <div><strong>Tanggal Mulai:</strong> {{ pelatihan.tanggal_mulai|date:"d M Y" }}</div>
                 <div><strong>Tanggal Selesai:</strong> {{ pelatihan.tanggal_selesai|date:"d M Y" }}</div>
@@ -23,7 +27,7 @@
             <hr />
 
             <h6 class="mt-4 mb-2">Progress Pengisian Dokumen: {{ pelatihan.persentase_progress }}%</h6>
-            <div class="progress" style="height: 15px;"> {# Adjust height as needed #}
+            <div class="progress" style="height: 15px;">
                 <div 
                     class="progress-bar bg-success" 
                     role="progressbar" 
@@ -39,12 +43,15 @@
     </div>
 </div>
 <div class="container pb-2 d-flex justify-content-end">
-    <a href="{% url 'edit' pelatihan.id %}" class="btn btn-sm btn-warning mt-3 pb-2">
+    <a href="{% url 'main:dashboard' %}" class="btn btn-sm btn-secondary mt-3 pb-2 me-2">
+        <i class="fa fa-arrow-left"></i> Kembali ke Daftar
+    </a>
+
+    <a href="{% url 'pelatihan:edit' pelatihan.id %}" class="btn btn-sm btn-warning mt-3 pb-2">
         <i class="fa-solid fa-edit"></i> Edit Detail Pelatihan
     </a>
 </div>
 <hr />
-
 {% endblock page_header_content %}
 
 {% block content %}
@@ -58,49 +65,62 @@
                     <table class="table table-striped table-bordered align-items-center mb-0" aria-label="Detail Pelatihan">
                         <thead class="table-dark">
                             <tr>
-                                <th class="text-center text-uppercase text-xs font-weight-bolder"
-                                    scope="col">Nomor</th>
-                                <th class="text-center text-uppercase text-xs font-weight-bolder"
-                                    scope="col">Nama Dokumen</th>
-                                <th class="text-center text-uppercase text-xs font-weight-bolder"
-                                    scope="col">Aksi</th>
-                                <th class="text-center text-uppercase text-xs font-weight-bolder"
-                                    scope="col">Status</th>
-                                <th class="text-center text-uppercase text-xs font-weight-bolder"
-                                    scope="col">Notes Admin</th>
+                                <th class="text-center text-uppercase text-xs font-weight-bolder" scope="col">Nomor</th>
+                                <th class="text-center text-uppercase text-xs font-weight-bolder" scope="col">Nama Dokumen</th>
+                                <th class="text-center text-uppercase text-xs font-weight-bolder" scope="col">Aksi</th>
+                                <th class="text-center text-uppercase text-xs font-weight-bolder" scope="col">Status</th>
+                                <th class="text-center text-uppercase text-xs font-weight-bolder" scope="col">Notes Admin</th>
                             </tr>
                         </thead>
                         <tbody>
-                            
                             {% for form in formset %}
                             <tr id="dokumen-row-{{ form.instance.id }}">
                                 {{ form.id }}
                                 <td class="text-center text-sm font-weight-bold">{{ forloop.counter }}</td>
                                 <td class="px-sm-4 px-3 text-sm font-weight-bold" style="white-space:normal">{{ form.instance.get_nama_display }}</td>
                                 <td class="d-flex justify-content-center align-items-center gap-2 text-sm font-weight-bold">
-                                    {% if form.instance.file_url %}
-                                        <a href="#" class="btn btn-sm btn-success view-document-btn mt-3"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#documentModal"
-                                        data-document-url="{{ form.instance.file_url.url }}"
-                                        data-document-title="{{ form.instance.get_nama_display }}">
-                                            <i class="fa-solid fa-eye"></i> Lihat
+                                    
+                                    {# --- Conditional Block for Actions --- #}
+                                    {% if user.profile.is_admin %}
+                                        {# Admin Actions #}
+                                        {% if form.instance.file_url %}
+                                            <a href="#" class="btn btn-sm btn-primary edit-document-btn mt-3" 
+                                            data-bs-toggle="modal" data-bs-target="#documentModal" 
+                                            data-document-url="{{ form.instance.file_url.url }}" 
+                                            data-document-id="{{ form.instance.id }}" 
+                                            data-pelatihan-id="{{ pelatihan.id }}" 
+                                            data-document-title="{{ form.instance.get_nama_display }}">
+                                                <i class="fa-solid fa-check"></i> Lihat & Verifikasi
+                                            </a>
+                                        {% else %}
+                                            <a class="btn btn-sm btn-secondary disabled mt-3">
+                                                <i class="fa-solid fa-check"></i> Lihat & Verifikasi
+                                            </a>
+                                        {% endif %}
+                                        <a href="{% url 'pelatihan:skip_document' pelatihan.id form.instance.id %}" class="btn btn-danger btn-sm mt-3 skip-button">
+                                            <i class="fa-solid fa-xmark"></i> Skip
                                         </a>
+                                    
                                     {% else %}
-                                        <a class="btn btn-sm btn-secondary disabled mt-3">
-                                            <i class="fa-solid fa-eye"></i> Lihat
+                                        {# User Actions #}
+                                        {% if form.instance.file_url %}
+                                            <a href="#" class="btn btn-sm btn-success view-document-btn mt-3" data-bs-toggle="modal" 
+                                            data-bs-target="#documentModal" 
+                                            data-document-url="{{ form.instance.file_url.url }}" 
+                                            data-document-title="{{ form.instance.get_nama_display }}">
+                                                <i class="fa-solid fa-eye"></i> Lihat
+                                            </a>
+                                        {% else %}
+                                            <a class="btn btn-sm btn-secondary disabled mt-3"><i class="fa-solid fa-eye"></i> Lihat</a>
+                                        {% endif %}
+                                        
+                                        <div style="display: none;">{{ form.file_url }}</div>
+                                        <label for="{{ form.file_url.id_for_label }}" class="btn btn-sm btn-primary custom-file-label mt-3"><i class="fa-solid fa-upload"></i> Unggah</label>
+                                        <a href="{% url 'pelatihan:skip_document' pelatihan.id form.instance.id %}" class="btn btn-danger btn-sm mt-3 skip-button">
+                                            <i class="fa-solid fa-xmark"></i> Skip
                                         </a>
                                     {% endif %}
-
-                                    <div style="display: none;">{{ form.file_url }}</div>
-                                    <label for="{{ form.file_url.id_for_label }}" class="btn btn-sm btn-primary custom-file-label mt-3">
-                                        <i class="fa-solid fa-upload"></i> Unggah
-                                    </label>
                                     
-                                    <a href="{% url 'skip_document' pelatihan.id form.instance.id %}"
-                                    class="btn btn-danger btn-sm mt-3 skip-button">
-                                        <i class="fa-solid fa-xmark"></i> Skip
-                                    </a>
                                 </td>
                                 <td class="text-center text-sm font-weight-bold">
                                     {% if form.instance.status == STATUS_DOKUMEN_PERLU_REVISI %}
@@ -114,11 +134,7 @@
                                     {% endif %}
                                 </td>
                                 <td class="px-sm-4 px-3 text-center text-sm font-weight-bold" style="white-space:normal">
-                                    {% if form.instance.notes %}
-                                        {{ form.instance.notes }}
-                                    {% else %}
-                                        -
-                                    {% endif %}
+                                    {% if form.instance.notes %}{{ form.instance.notes }}{% else %}-{% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -128,7 +144,7 @@
             </form>
             <div class="text-end pe-2">
                 {% if pelatihan.persentase_progress == 100 %}
-                    <a href="{% url 'download_merged_docs' pelatihan.id %}" class="btn btn-sm btn-success mt-3 pb-2">
+                    <a href="{% url 'pelatihan:download_merged_docs' pelatihan.id %}" class="btn btn-sm btn-success mt-3 pb-2">
                         <i class="fa-solid fa-download"></i> Download Semua Dokumen
                     </a>
                 {% else %}
@@ -149,30 +165,45 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <iframe id="documentIframe" src="" frameborder="0" style="width: 100%; height: 70vh;"></iframe>
+                {% if user.profile.is_admin %}
+                    {# Admin's split view modal body #}
+                    <div class="row">
+                        <div class="col-md-7">
+                            <h6 class="mb-2">Pratinjau Dokumen</h6>
+                            <div id="iframeContainer">
+                                <iframe id="documentPreviewIframe" src="" frameborder="0" style="width: 100%; height: 70vh;"></iframe>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <h6 class="mb-2">Detail & Verifikasi</h6>
+                            <div id="documentFormContainer">
+                                <div class="text-center mt-5"></div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    {# User's simple view modal body #}
+                    <iframe id="documentIframe" src="" frameborder="0" style="width: 100%; height: 70vh;"></iframe>
+                {% endif %}
             </div>
             <div class="modal-footer">
-                <a id="downloadDocumentBtn" target="_blank" class="btn btn-primary">Unduh Asli</a>
+                {% if user.profile.is_admin %}
+                    <button type="submit" class="btn btn-primary" form="editDocumentForm">Simpan Perubahan</button>
+                {% else %}
+                    <a id="downloadDocumentBtn" target="_blank" class="btn btn-primary">Unduh Asli</a>
+                {% endif %}
             </div>
         </div>
-    </div>
-</div>
-
-<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
-    <div id="appToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-header" id="toastHeader">
-            <i class="fa-solid fa-circle-info me-2" id="toastIcon"></i>
-            <strong class="me-auto" id="toastTitle">Pemberitahuan</strong>
-            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-        <div class="toast-body" id="toastBody">
-            </div>
     </div>
 </div>
 {% endblock content %}
 
 {% block script %}
-<script src="{% static 'pelatihan/js/document_modal.js' %}"></script>
-<script src="{% static 'pelatihan/js/toast_unggah_dokumen.js' %}"></script>
+{# --- Conditionally load the correct JavaScript --- #}
+{% if user.profile.is_admin %}
+    <script src="{% static 'pelatihan/js/verifikasi_modal.js' %}"></script>
+{% else %}
+    <script src="{% static 'pelatihan/js/document_modal.js' %}"></script>
+{% endif %}
 <script src="{% static 'pelatihan/js/skip_dokumen.js' %}"></script>
 {% endblock script %}

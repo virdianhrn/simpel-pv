@@ -9,8 +9,6 @@
     
     <!-- CSS only -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0" crossorigin="anonymous">
-    <!-- JavaScript Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-p34f1UUtsS3wqzfto5wAAmdvj+osOnFyQFpp4Ua3gs/ZVWx6oOypYoCJhGGScy+8" crossorigin="anonymous"></script>
 
     <!-- Favicon -->
     
@@ -27,14 +25,15 @@
     <link href="{% static 'css/nucleo-icons.css' %}" rel="stylesheet" />
     <link href="{% static 'css/nucleo-svg.css' %}" rel="stylesheet" />
 
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <!-- <script src="https://kit.fontawesome.com/ef6c773c26.js" crossorigin="anonymous"></script> -->
+
     <!-- CSS Files -->
     <link id="pagestyle" href="{% static 'css/argon-dashboard.css' %}" rel="stylesheet" />
 
     <!-- Specific CSS goes HERE -->
     {% block stylesheets %} {% endblock stylesheets %}
-
-    <!-- Font Awesome Icons -->
-    <script src="https://kit.fontawesome.com/ef6c773c26.js" crossorigin="anonymous"></script>
 
     {% block meta %} {% endblock meta %}
   </head>
@@ -57,12 +56,25 @@
     </main>
     <!-- End of content -->
 
+    <!-- Toast Handler -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+        <div id="appToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header" id="toastHeader">
+                <i class="me-2" id="toastIcon"></i>
+                <strong class="me-auto" id="toastTitle">Pemberitahuan</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastBody"></div>
+        </div>
+    </div>
+
     <!-- Core Scripts -->
     <script src="{% static 'js/core/popper.min.js' %}"></script>
     <script src="{% static 'js/core/bootstrap.min.js' %}"></script>
     <script src="{% static 'js/plugins/perfect-scrollbar.min.js' %}"></script>
     <script src="{% static 'js/plugins/smooth-scrollbar.min.js' %}"></script>
     <script src="{% static 'js/argon-dashboard.min.js' %}"></script>
+    <script src="{% static 'js/toast-handler.js' %}"></script>
 
     <!-- Additional Scripts -->
     {% block script %} {% endblock script %}

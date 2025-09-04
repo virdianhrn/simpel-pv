@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} Tambah Pelatihan Baru {% endblock title %}
+
+{% block navbar %}
+{% with variant='light' %}
+{{ block.super }}
+{% endwith %}
+{% endblock navbar %}
+
+{% block content %}
+<div class="page-header pt-7 pb-5 bg-white-blue">
+  <div class="container">
+    <h1 class="mb-0">Tambah Pelatihan Baru</h1>
+    <p class="text-muted">Isi detail di bawah ini untuk membuat data pelatihan baru.</p>
+  </div>
+</div>
+
+<div class="container mt-n5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card mb-4">
+        <div class="card-body p-4">
+          <form method="POST">
+            {% csrf_token %}
+
+            <!-- Loop through form fields for consistent styling -->
+            {% for field in form %}
+              <div class="mb-3">
+                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                  <small class="form-text text-muted">{{ field.help_text }}</small>
+                {% endif %}
+                {% for error in field.errors %}
+                  <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+              </div>
+            {% endfor %}
+
+            <div class="d-flex justify-content-end mt-4">
+              <a href="{% url 'main:dashboard' %}" class="btn btn-secondary me-2">Batal</a>
+              <button type="submit" class="btn bg-brand btn-success">Simpan Pelatihan</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
