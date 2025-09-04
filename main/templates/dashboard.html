@@ -72,9 +72,13 @@
                 <a href="{% url 'pelatihan:edit' pelatihan.id %}" class="btn btn-sm btn-warning" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Pelatihan">
                   <i class="fa fa-edit"></i>
                 </a>
-                <a href="#" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete Pelatihan">
+                <button type="button" class="btn btn-sm btn-danger" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#deleteConfirmationModal"
+                        data-pelatihan-name="{{ pelatihan.judul }}"
+                        data-pelatihan-delete-url="{% url 'pelatihan:delete' pelatihan.id %}">
                   <i class="fa fa-trash"></i>
-                </a>
+                </button>
               </td>
             </tr>
             {% endfor %}
@@ -91,4 +95,32 @@
     </div>
   </div>
 </div>
+
+
+<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Konfirmasi Hapus</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Apakah Anda yakin ingin menghapus pelatihan: <strong id="pelatihanNameToDelete"></strong>?</p>
+        <p class="text-danger small">Tindakan ini tidak dapat diurungkan.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <form id="deleteForm" method="POST" action="">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Ya, Hapus</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% block script %}
+<script src="{% static 'main/js/delete_confirm.js' %}"></script>
+{% endblock script %}
+
 {% endblock content %}

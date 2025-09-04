@@ -57,12 +57,24 @@
     </main>
     <!-- End of content -->
 
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+        <div id="appToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header" id="toastHeader">
+                <i class="me-2" id="toastIcon"></i>
+                <strong class="me-auto" id="toastTitle">Pemberitahuan</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastBody"></div>
+        </div>
+    </div>
+
     <!-- Core Scripts -->
     <script src="{% static 'js/core/popper.min.js' %}"></script>
     <script src="{% static 'js/core/bootstrap.min.js' %}"></script>
     <script src="{% static 'js/plugins/perfect-scrollbar.min.js' %}"></script>
     <script src="{% static 'js/plugins/smooth-scrollbar.min.js' %}"></script>
     <script src="{% static 'js/argon-dashboard.min.js' %}"></script>
+    <script src="{% static 'js/toast-handler.js' %}"></script>
 
     <!-- Additional Scripts -->
     {% block script %} {% endblock script %}

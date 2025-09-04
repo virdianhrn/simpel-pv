@@ -168,6 +168,18 @@ def skip_document(request, pelatihan_id, document_id):
 
     return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)
 
+
+def delete(request, pelatihan_id):
+    pelatihan = get_object_or_404(Pelatihan, id=pelatihan_id)
+    
+    if request.method == 'POST':
+        pelatihan_title = pelatihan.judul
+        pelatihan.delete()
+        messages.success(request, f"Pelatihan '{pelatihan_title}' berhasil dihapus.")
+        return redirect('main:dashboard')
+    
+    return redirect('main:dashboard')
+
 def download_merged_docs(request, pelatihan_id):
     pelatihan = get_object_or_404(Pelatihan, pk=pelatihan_id)
     
