@@ -29,7 +29,7 @@ def manage(request):
     context = {
         'user_list': user_list,
     }
-    return render(request, 'dashboard.html', context)
+    return render(request, 'user_manage.html', context)
 
 def delete_user_view(request, user_id):
     target_user = get_object_or_404(User, id=user_id)
@@ -51,4 +51,4 @@ def delete_user_view(request, user_id):
     context = {
         'target_user': target_user
     }
-    return render(request, 'accounts/delete_account_confirmation.html', context)
+    return render(request, 'delete_account_confirmation.html', context)
