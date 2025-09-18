@@ -31,16 +31,17 @@
         {% if user.profile.is_penyelenggara%}
         <li class="nav-item me-2">
           <a class="nav-link" href="{% url 'main:dashboard' %}">
-            <em class="fa fa-clipboard-check opacity-6 me-1"></em>
+            <em class="fa fa-th-large opacity-6 me-1"></em>
             Dashboard
           </a>
         </li>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             <em class="fa fa-user opacity-6 me-1"></em>
-            {{ user }}
+            {{ user.profile }}
           </a>
-          <ul class="dropdown-menu">     
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{% url 'accounts:my_profile' %}">Akun</a></li>
             <li><a class="dropdown-item" href="{% url 'authentication:logout' %}">Keluar</a></li>
           </ul>
         </li>
@@ -51,12 +52,19 @@
             Dashboard
           </a>
         </li>
+        <li class="nav-item me-2">
+          <a class="nav-link" href="{% url 'accounts:manage' %}">
+            <em class="fa fa-th-large opacity-6 me-1"></em>
+            Atur Pengguna
+          </a>
+        </li>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             <em class="fa fa-user opacity-6 me-1"></em>
-            {{ user }}
+            {{ user.profile }}
           </a>
-          <ul class="dropdown-menu">    
+          <ul class="dropdown-menu">  
+            <li><a class="dropdown-item" href="{% url 'accounts:my_profile' %}">Akun</a></li>  
             <li><a class="dropdown-item" href="{% url 'authentication:logout' %}">Keluar</a></li>
           </ul>
         </li>
