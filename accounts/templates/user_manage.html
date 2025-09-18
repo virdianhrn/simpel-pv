@@ -14,7 +14,7 @@
   <div class="container">
     <div class="d-flex justify-content-between align-items-center">
       <h1 class="mb-0">Manajemen Pengguna</h1>
-      <a href="#" class="btn bg-brand"> {# TODO: Link to 'add user' view #}
+      <a href="#" class="btn btn-success bg-brand"> {# TODO: Link to 'add user' view #}
         <i class="fa fa-plus me-2"></i> Tambah Pengguna Baru
       </a>
     </div>
@@ -33,8 +33,8 @@
         <table class="table table-striped align-items-center mb-0">
           <thead class="table-dark">
             <tr>
-              <th class="text-uppercase text-xs font-weight-bolder ps-4">Nama Lengkap</th>
-              <th class="text-uppercase text-xs font-weight-bolder">Username</th>
+              <th class="text-center text-uppercase text-xs font-weight-bolder">Nama Lengkap</th>
+              <th class="text-center text-uppercase text-xs font-weight-bolder">Username</th>
               <th class="text-center text-uppercase text-xs font-weight-bolder">Role</th>
               <th class="text-center text-uppercase text-xs font-weight-bolder">Aksi</th>
             </tr>
@@ -42,27 +42,28 @@
           <tbody>
             {% for user_obj in user_list %}
             <tr>
-              <td class="ps-4">
-                <p class="text-sm font-weight-bold mb-0">{{ user_obj.get_full_name }}</p>
+              <td class="text-center">
+                <p class="text-sm font-weight-bold mb-0">
+                  <a href="{% url 'accounts:user_profile' user_obj.id %}">
+                    {{ user_obj.get_full_name }}
+                  </a>
+                </p>
                 <p class="text-xs text-secondary mb-0">{{ user_obj.profile.jabatan }}</p>
-              </td>
-              <td>
+              </td class="text-center">
+              <td class="text-center">
                 <p class="text-sm font-weight-bold mb-0">{{ user_obj.username }}</p>
               </td>
               <td class="align-middle text-center">
                 <span class="badge bg-gradient-primary">{{ user_obj.profile.get_role_display }}</span>
               </td>
-              <td class="align-middle text-center">
-                <a href="{% url 'accounts:user_profile' user_obj.id %}" class="btn btn-sm btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat Profil">
+              <td class="d-flex justify-content-center align-items-center gap-2">
+                <a href="{% url 'accounts:user_profile' user_obj.id %}" class="btn btn-sm btn-info mt-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat Profil">
                   <i class="fa fa-eye"></i>
                 </a>
-                <a href="#" class="btn btn-sm btn-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah Role"> {# TODO: Link to 'change_role' view #}
-                  <i class="fa fa-users-cog"></i>
-                </a>
-                <a href="#" class="btn btn-sm btn-warning" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Profil"> {# TODO: Link to 'edit_profile' view #}
+                <a href="#" class="btn btn-sm btn-warning mt-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Profil"> {# TODO: Link to 'edit_profile' view #}
                   <i class="fa fa-edit"></i>
                 </a>
-                <a href="{% url 'accounts:delete_user' user_obj.id %}" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus Pengguna">
+                <a href="{% url 'accounts:delete_user' user_obj.id %}" class="btn btn-sm btn-danger mt-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus Pengguna">
                   <i class="fa fa-trash"></i>
                 </a>
               </td>

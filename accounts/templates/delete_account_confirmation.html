@@ -29,8 +29,8 @@
             <form method="POST" action="{% url 'accounts:delete_user' target_user.id %}">
               {% csrf_token %}
               <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
-                <a href="{% if request.user == target_user %}{% url 'accounts:my_profile' %}{% else %}{% url 'accounts:manage' %}{% endif %}" class="btn btn-secondary">Tidak, Batalkan</a>
-                <button type="submit" class="btn btn-danger">Ya, Saya Yakin, Hapus Akun Ini</button>
+                <a href="{% if request.user == target_user %}{% url 'accounts:my_profile' %}{% else %}{% url 'accounts:manage' %}{% endif %}" class="btn btn-secondary">Tidak, batalkan</a>
+                <button type="submit" class="btn btn-danger">Ya, Saya yakin. Hapus akun ini</button>
               </div>
             </form>
           </div>
