@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Profile
+from .forms import CreateUserForm
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth import logout
@@ -30,6 +31,21 @@ def manage(request):
         'user_list': user_list,
     }
     return render(request, 'user_manage.html', context)
+
+def add_user_view(request):
+    if request.method == 'POST':
+        form = CreateUserForm(request.POST, request.FILES)
+        if form.is_valid():
+            new_user = form.save()
+            messages.success(request, f"Pengguna '{new_user.username}' berhasil ditambahkan.")
+            return redirect('accounts:manage')
+    else:
+        form = CreateUserForm()
+
+    context = {
+        'form': form
+    }
+    return render(request, 'add_user.html', context)
 
 def delete_user_view(request, user_id):
     target_user = get_object_or_404(User, id=user_id)
