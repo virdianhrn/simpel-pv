@@ -34,7 +34,7 @@ class DetailView(LoginRequiredMixin, View):
         This method still runs first. We use it to check permissions
         and get the pelatihan object so we don't have to fetch it twice.
         """
-        if not (request.user.profile.is_admin or request.user.profile.is_penyelenggara):
+        if not (request.user.is_admin or request.user.is_penyelenggara):
             return HttpResponseForbidden("You are not authorized to view this page.")
         
         self.pelatihan = get_object_or_404(Pelatihan, id=kwargs.get('pelatihan_id'))
@@ -66,7 +66,7 @@ class DetailView(LoginRequiredMixin, View):
         if formset.is_valid():
             # Handle the data submission
             formset.save()
-            if request.user.profile.is_admin:
+            if request.user.is_admin:
                 messages.success(request, 'Verifikasi dokumen berhasil disimpan!')
             else:
                 for form in formset:
@@ -130,7 +130,7 @@ def skip_document(request, pelatihan_id, document_id):
         writer.write(buffer)
         buffer.seek(0)
 
-        if request.user.profile.is_admin:
+        if request.user.is_admin:
             document.status = DocStatus.TERVERIFIKASI
         else:
             document.status = DocStatus.DALAM_PROSES_VERIFIKASI

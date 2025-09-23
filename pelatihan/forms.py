@@ -14,7 +14,7 @@ class PelatihanForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         # If a user is passed and they are NOT an admin, disable the 'pic' field.
-        if self.user and not self.user.profile.is_admin:
+        if self.user and not self.user.is_admin:
             if 'pic' in self.fields:
                 del self.fields['pic']
 

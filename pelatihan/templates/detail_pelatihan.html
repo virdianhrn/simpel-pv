@@ -17,7 +17,7 @@
             <div class="d-flex justify-content-evenly flex-wrap gap-4 mb-3 text-lg">
                 <div><strong>Judul:</strong> {{ pelatihan.judul }}</div>
                 {# --- Conditional Block for Admin --- #}
-                {% if user.profile.is_admin %}
+                {% if user.is_admin %}
                 <div><strong>PIC:</strong> {{ pelatihan.pic }}</div>
                 {% endif %}
                 <div><strong>Durasi:</strong> {{ pelatihan.durasi }} JP</div>
@@ -81,7 +81,7 @@
                                 <td class="d-flex justify-content-center align-items-center gap-2 text-sm font-weight-bold">
                                     
                                     {# --- Conditional Block for Actions --- #}
-                                    {% if user.profile.is_admin %}
+                                    {% if user.is_admin %}
                                         {# Admin Actions #}
                                         {% if form.instance.file_url %}
                                             <a href="#" class="btn btn-sm btn-primary edit-document-btn mt-3" 
@@ -165,7 +165,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                {% if user.profile.is_admin %}
+                {% if user.is_admin %}
                     {# Admin's split view modal body #}
                     <div class="row">
                         <div class="col-md-7">
@@ -187,7 +187,7 @@
                 {% endif %}
             </div>
             <div class="modal-footer">
-                {% if user.profile.is_admin %}
+                {% if user.is_admin %}
                     <button type="submit" class="btn btn-primary" form="editDocumentForm">Simpan Perubahan</button>
                 {% else %}
                     <a id="downloadDocumentBtn" target="_blank" class="btn btn-primary">Unduh Asli</a>
@@ -200,7 +200,7 @@
 
 {% block script %}
 {# --- Conditionally load the correct JavaScript --- #}
-{% if user.profile.is_admin %}
+{% if user.is_admin %}
     <script src="{% static 'pelatihan/js/verifikasi_modal.js' %}"></script>
 {% else %}
     <script src="{% static 'pelatihan/js/document_modal.js' %}"></script>

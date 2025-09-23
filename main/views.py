@@ -10,10 +10,10 @@ def landing_page(request):
     return render(request, 'landing_page.html')
 
 def dashboard(request):
-    if request.user.profile.is_admin:
+    if request.user.is_admin:
         pelatihan_list = Pelatihan.objects.all().order_by('-tanggal_mulai')
     else:
-        pelatihan_list = Pelatihan.objects.filter(pic=request.user.profile).order_by('-tanggal_mulai')
+        pelatihan_list = Pelatihan.objects.filter(pic=request.user).order_by('-tanggal_mulai')
     context = {
         'pelatihan_list': pelatihan_list
     }

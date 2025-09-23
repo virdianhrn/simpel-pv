@@ -28,7 +28,7 @@
     </button>
     <div class="collapse navbar-collapse" id="navigation">
       <ul class="navbar-nav ms-auto">
-        {% if user.profile.is_penyelenggara%}
+        {% if user.is_penyelenggara%}
         <li class="nav-item me-2">
           <a class="nav-link" href="{% url 'main:dashboard' %}">
             <em class="fa fa-th-large opacity-6 me-1"></em>
@@ -38,14 +38,14 @@
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             <em class="fa fa-user opacity-6 me-1"></em>
-            {{ user.profile }}
+            {{ user }}
           </a>
           <ul class="dropdown-menu">
             <li><a class="dropdown-item" href="{% url 'accounts:my_profile' %}">Akun</a></li>
             <li><a class="dropdown-item" href="{% url 'authentication:logout' %}">Keluar</a></li>
           </ul>
         </li>
-        {% elif user.profile.is_admin %}
+        {% elif user.is_admin %}
         <li class="nav-item me-2">
           <a class="nav-link" href="{% url 'main:dashboard' %}">
             <em class="fa fa-th-large opacity-6 me-1"></em>
@@ -61,7 +61,7 @@
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             <em class="fa fa-user opacity-6 me-1"></em>
-            {{ user.profile }}
+            {{ user }}
           </a>
           <ul class="dropdown-menu">  
             <li><a class="dropdown-item" href="{% url 'accounts:my_profile' %}">Akun</a></li>  

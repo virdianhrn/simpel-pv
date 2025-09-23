@@ -1,32 +1,29 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import Profile
-from .forms import CreateUserForm, EditUserForm
-from django.contrib.auth.models import User
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import get_user_model, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.contrib.auth import logout
+from .forms import CreateUserForm, EditUserForm
+
+# Get the custom User model at the start
+User = get_user_model()
 
 def my_profile_view(request):
-    profile = get_object_or_404(Profile, user=request.user)
+    # This is simpler. The user object is the profile.
     context = {
-        'profile': profile,
-        'viewed_user': request.user
+        'target_user': request.user
     }
     return render(request, 'profile.html', context)
 
-
 def user_profile_view(request, user_id):
     target_user = get_object_or_404(User, id=user_id)
-    profile = target_user.profile
-
+    # The 'profile' is now the user object itself.
     context = {
-        'profile': profile,
-        'viewed_user': target_user
+        'target_user': target_user
     }
     return render(request, 'profile.html', context)
 
 def manage(request):
-    user_list = User.objects.select_related('profile').exclude(pk=request.user.pk).order_by('first_name')
-
+    user_list = User.objects.exclude(pk=request.user.pk).order_by('first_name')
     context = {
         'user_list': user_list,
     }
@@ -49,6 +46,7 @@ def add_user_view(request):
 
 def edit_user_view(request, user_id):
     target_user = get_object_or_404(User, id=user_id)
+
     if request.method == 'POST':
         form = EditUserForm(request.POST, request.FILES, instance=target_user, user=request.user)
         if form.is_valid():
@@ -57,12 +55,11 @@ def edit_user_view(request, user_id):
             return redirect('accounts:user_profile', user_id=target_user.id)
     else:
         form = EditUserForm(instance=target_user, user=request.user)
-
+    
     context = {
         'form': form,
         'target_user': target_user
     }
-
     return render(request, 'user_form.html', context)
 
 def delete_user_view(request, user_id):
@@ -71,17 +68,15 @@ def delete_user_view(request, user_id):
 
     if request.method == 'POST':
         user_fullname = target_user.get_full_name()
-        
         if is_own_account:
             logout(request)
             target_user.delete()
-            return redirect('main:landing_page')
-        
+            return redirect('core:landing_page')
         else:
             target_user.delete()
             messages.success(request, f"Pengguna '{user_fullname}' berhasil dihapus.")
             return redirect('accounts:manage')
-
+    
     context = {
         'target_user': target_user
     }
