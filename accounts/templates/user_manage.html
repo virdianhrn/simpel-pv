@@ -54,13 +54,17 @@
                 <p class="text-sm font-weight-bold mb-0">{{ user_obj.username }}</p>
               </td>
               <td class="align-middle text-center">
-                <span class="badge bg-gradient-primary">{{ user_obj.profile.get_role_display }}</span>
+                {% if user_obj.profile.is_admin %}
+                  <span class="badge bg-gradient-danger">{{ user_obj.profile.get_role_display }}</span>
+                {% else %}
+                  <span class="badge bg-gradient-primary">{{ user_obj.profile.get_role_display }}</span>
+                {% endif %}
               </td>
               <td class="d-flex justify-content-center align-items-center gap-2">
                 <a href="{% url 'accounts:user_profile' user_obj.id %}" class="btn btn-sm btn-info mt-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat Profil">
                   <i class="fa fa-eye"></i>
                 </a>
-                <a href="#" class="btn btn-sm btn-warning mt-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Profil"> {# TODO: Link to 'edit_profile' view #}
+                <a href="{% url 'accounts:edit_user' user_obj.id %}" class="btn btn-sm btn-warning mt-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Profil"> {# TODO: Link to 'edit_profile' view #}
                   <i class="fa fa-edit"></i>
                 </a>
                 <a href="{% url 'accounts:delete_user' user_obj.id %}" class="btn btn-sm btn-danger mt-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus Pengguna">
