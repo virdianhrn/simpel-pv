@@ -38,8 +38,8 @@ class User(AbstractUser):
     
     @property
     def is_admin(self):
-        return self.role == self.ADMIN
+        return self.role == self.Role.ADMIN
 
     @property
     def is_penyelenggara(self):
-        return self.role == self.PENYELENGGARA
+        return self.role == self.Role.PENYELENGGARA

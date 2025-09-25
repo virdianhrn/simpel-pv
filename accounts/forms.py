@@ -8,13 +8,18 @@ class CreateUserForm(forms.ModelForm):
     # Add a password confirmation field, which isn't on the model
     password2 = forms.CharField(label='Confirm Password', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
 
+    role = forms.ChoiceField(
+        choices=User.Role.choices,
+        widget=forms.RadioSelect,
+        required=True,
+        label="User Role"
+    )
+
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'username', 'email', 'password', 'role', 'jabatan', 'foto']
         widgets = {
             'password': forms.PasswordInput(attrs={'class': 'form-control'}),
-            'role': forms.RadioSelect,
-            # Add form-control class to all other widgets automatically
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
             'username': forms.TextInput(attrs={'class': 'form-control'}),
@@ -41,6 +46,14 @@ class CreateUserForm(forms.ModelForm):
 
 
 class EditUserForm(forms.ModelForm):
+
+    role = forms.ChoiceField(
+        choices=User.Role.choices,
+        widget=forms.RadioSelect,
+        required=True,
+        label="User Role"
+    )
+    
     class Meta:
         model = User
         # Exclude the password field from the edit form
@@ -56,10 +69,10 @@ class EditUserForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        self.editing_user = kwargs.pop('user', None)
+        editing_user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
         # If the user is NOT an admin, hide the role field.
-        if self.editing_user and not self.editing_user.is_admin:
+        if editing_user and not editing_user.is_admin:
             if 'role' in self.fields:
                 del self.fields['role']
