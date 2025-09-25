@@ -1,10 +1,10 @@
-import os, uuid
+import os, shortuuid
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 def upload_to_foto(instance, filename):
     extension = os.path.splitext(filename)[1]
-    new_filename = f"{uuid.uuid4()}{extension}"
+    new_filename = f"{shortuuid.uuid()}{extension}"
     return f'foto_user/{new_filename}'
 
 class User(AbstractUser):
@@ -34,7 +34,7 @@ class User(AbstractUser):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.user.first_name} {self.user.last_name}"
+        return f"{self.first_name} {self.last_name}"
     
     @property
     def is_admin(self):

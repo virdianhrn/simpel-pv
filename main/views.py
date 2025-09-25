@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect
-from accounts.models import Profile
 from pelatihan.models import Pelatihan
 
 # Create your views here.

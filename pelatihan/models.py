@@ -4,14 +4,14 @@ import uuid
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.text import slugify
+from django.contrib.auth import get_user_model
 
-from accounts.models import Profile
 
-
+User = get_user_model()
 class Pelatihan(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     judul = models.CharField(max_length=255, verbose_name="Judul Pelatihan")
-    pic = models.ForeignKey(Profile, verbose_name="PIC Pelatihan",
+    pic = models.ForeignKey(User, verbose_name="PIC Pelatihan",
                             on_delete=models.CASCADE, related_name='pelatihan')
     tanggal_mulai = models.DateField(verbose_name="Tanggal Mulai Pelatihan")
     tanggal_selesai = models.DateField(verbose_name="Tanggal Selesai Pelatihan")
