@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login, logout
 def login_handler(request):
     error = None
     if(request.user.is_authenticated):
-        return redirect('main:landing_page'))
+        return redirect('main:landing_page')
     if request.method == "POST" :
         data = request.POST
         user = authenticate(username=data['username'],password=data['password'])
