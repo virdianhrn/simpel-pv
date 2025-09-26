@@ -77,7 +77,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'sipena.wsgi.application'
 AUTH_USER_MODEL = 'accounts.User'
-LOGIN_URL = reverse_lazy('login')
+LOGIN_URL = reverse_lazy('authentication:login')
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases

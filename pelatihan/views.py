@@ -1,18 +1,24 @@
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import Pelatihan, PelatihanDokumen
-from .forms import DokumenFormSet, PelatihanForm, VerifikasiDokumenForm
-from django.core.files.base import ContentFile
-from io import BytesIO
-from PyPDF2 import PdfWriter, PdfMerger, PdfReader
-from django.contrib import messages
+# Standard library imports
 import json
-from django.views import View
-from django.http import HttpResponseForbidden
+from io import BytesIO
+
+# Third-party imports
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.files.base import ContentFile
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views import View
+from PyPDF2 import PdfMerger, PdfReader, PdfWriter
+
+# Local application imports
+from accounts.decorators import admin_required, admin_or_pelatihan_owner_required
+from .forms import DokumenFormSet, PelatihanForm, VerifikasiDokumenForm
+from .models import Pelatihan, PelatihanDokumen
 
 DocStatus = PelatihanDokumen.DocumentStatus
 
+@admin_required
 def verifikasi_dokumen(request, pelatihan_id, document_id):
     document = get_object_or_404(PelatihanDokumen, pk=document_id)
 
@@ -29,14 +35,7 @@ def verifikasi_dokumen(request, pelatihan_id, document_id):
 
 class DetailView(LoginRequiredMixin, View):
 
-    def dispatch(self, request, *args, **kwargs):
-        """
-        This method still runs first. We use it to check permissions
-        and get the pelatihan object so we don't have to fetch it twice.
-        """
-        if not (request.user.is_admin or request.user.is_penyelenggara):
-            return HttpResponseForbidden("You are not authorized to view this page.")
-        
+    def dispatch(self, request, *args, **kwargs):    
         self.pelatihan = get_object_or_404(Pelatihan, id=kwargs.get('pelatihan_id'))
         return super().dispatch(request, *args, **kwargs)
 
@@ -85,6 +84,7 @@ class DetailView(LoginRequiredMixin, View):
         # Always redirect back to the same page after a POST
         return redirect('pelatihan:detail', pelatihan_id=self.pelatihan.id)
 
+@admin_required
 def add(request):
     if request.method == 'POST':
         form = PelatihanForm(request.POST, user=request.user)
@@ -100,6 +100,7 @@ def add(request):
     }
     return render(request, 'form_pelatihan.html', context)
 
+@admin_or_pelatihan_owner_required
 def edit(request, pelatihan_id):
     pelatihan = get_object_or_404(Pelatihan, id=pelatihan_id)
 
@@ -118,6 +119,7 @@ def edit(request, pelatihan_id):
     }
     return render(request, 'form_pelatihan.html', context)
 
+@admin_or_pelatihan_owner_required
 def skip_document(request, pelatihan_id, document_id):
     pelatihan = get_object_or_404(Pelatihan, pk=pelatihan_id)
 
@@ -143,7 +145,7 @@ def skip_document(request, pelatihan_id, document_id):
 
     return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)
 
-
+@admin_or_pelatihan_owner_required
 def delete(request, pelatihan_id):
     pelatihan = get_object_or_404(Pelatihan, id=pelatihan_id)
     
@@ -155,6 +157,7 @@ def delete(request, pelatihan_id):
     
     return redirect('main:dashboard')
 
+@admin_or_pelatihan_owner_required
 def download_merged_docs(request, pelatihan_id):
     pelatihan = get_object_or_404(Pelatihan, pk=pelatihan_id)
     

@@ -3,10 +3,11 @@ from django.contrib.auth import get_user_model, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import CreateUserForm, EditUserForm
-
+from .decorators import admin_required, self_or_admin_required
 # Get the custom User model at the start
 User = get_user_model()
 
+@login_required
 def my_profile_view(request):
     # This is simpler. The user object is the profile.
     context = {
@@ -14,6 +15,7 @@ def my_profile_view(request):
     }
     return render(request, 'profile.html', context)
 
+@self_or_admin_required
 def user_profile_view(request, user_id):
     target_user = get_object_or_404(User, id=user_id)
     # The 'profile' is now the user object itself.
@@ -22,6 +24,7 @@ def user_profile_view(request, user_id):
     }
     return render(request, 'profile.html', context)
 
+@admin_required
 def manage(request):
     user_list = User.objects.exclude(pk=request.user.pk).order_by('first_name')
     context = {
@@ -29,6 +32,7 @@ def manage(request):
     }
     return render(request, 'user_manage.html', context)
 
+@admin_required
 def add_user_view(request):
     if request.method == 'POST':
         form = CreateUserForm(request.POST, request.FILES)
@@ -44,6 +48,7 @@ def add_user_view(request):
     }
     return render(request, 'user_form.html', context)
 
+@admin_required
 def edit_user_view(request, user_id):
     target_user = get_object_or_404(User, id=user_id)
 
@@ -62,6 +67,7 @@ def edit_user_view(request, user_id):
     }
     return render(request, 'user_form.html', context)
 
+@admin_required
 def delete_user_view(request, user_id):
     target_user = get_object_or_404(User, id=user_id)
     is_own_account = (request.user == target_user)
