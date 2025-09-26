@@ -54,10 +54,10 @@
                 <p class="text-sm font-weight-bold mb-0">{{ user_obj.username }}</p>
               </td>
               <td class="align-middle text-center">
-                {% if user_obj.profile.is_admin %}
-                  <span class="badge bg-gradient-danger">{{ user_obj.profile.get_role_display }}</span>
+                {% if user_obj.is_admin %}
+                  <span class="badge bg-gradient-danger">{{ user_obj.get_role_display }}</span>
                 {% else %}
-                  <span class="badge bg-gradient-primary">{{ user_obj.profile.get_role_display }}</span>
+                  <span class="badge bg-gradient-primary">{{ user_obj.get_role_display }}</span>
                 {% endif %}
               </td>
               <td class="d-flex justify-content-center align-items-center gap-2">
