@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  {# The title changes based on whether we are editing or adding #}
+  {% if target_user %}Edit Pengguna{% else %}Tambah Pengguna Baru{% endif %}
+{% endblock title %}
+
+{% block navbar %}
+{% with variant='light' %}
+{{ block.super }}
+{% endwith %}
+{% endblock navbar %}
+
+
+{% block content %}
+<div class="page-header pt-7 pb-5 bg-white-blue">
+  <div class="container">
+    {# The header text also changes #}
+    {% if target_user %}
+      <h1 class="mb-0">Edit Pengguna</h1>
+      <p class="text-muted">Memperbarui detail untuk: <strong>{{ target_user.get_full_name }}</strong></p>
+    {% else %}
+      <h1 class="mb-0">Tambah Pengguna Baru</h1>
+      <p class="text-muted">Isi detail di bawah ini untuk membuat akun pengguna baru.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="container mt-n5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card mb-4">
+        <div class="card-body p-4">
+          <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="{{ form.first_name.id_for_label }}" class="form-label">{{ form.first_name.label }}</label>
+                {{ form.first_name }}
+                {% for error in form.first_name.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="{{ form.last_name.id_for_label }}" class="form-label">{{ form.last_name.label }}</label>
+                {{ form.last_name }}
+                {% for error in form.last_name.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="{{ form.username.id_for_label }}" class="form-label">{{ form.username.label }}</label>
+              {{ form.username }}
+              {% for error in form.username.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="mb-3">
+                <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                {{ form.email }}
+                {% for error in form.email.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+
+            {% if form.password %}
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="{{ form.password.id_for_label }}" class="form-label">{{ form.password.label }}</label>
+                {{ form.password }}
+                {% for error in form.password.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="{{ form.password2.id_for_label }}" class="form-label">{{ form.password2.label }}</label>
+                {{ form.password2 }}
+                {% for error in form.password2.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+              </div>
+            </div>
+            {% endif %}
+            
+            <hr class="my-4">
+            
+            <div class="mb-3">
+              <label for="{{ form.jabatan.id_for_label }}" class="form-label">{{ form.jabatan.label }}</label>
+              {{ form.jabatan }}
+              {% for error in form.jabatan.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+
+            {% if form.role %}
+            <div class="mb-3">
+              <label class="form-label d-block">{{ form.role.label }}</label>
+              {{ form.role }}
+              {% for error in form.role.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="mb-3">
+              <label for="{{ form.foto.id_for_label }}" class="form-label">{{ form.foto.label }}</label>
+              {{ form.foto }}
+              {% for error in form.foto.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+
+            <div class="d-flex justify-content-end mt-4">
+              <a href="{% if target_user %}{% url 'accounts:user_profile' target_user.id %}{% else %}{% url 'accounts:manage' %}{% endif %}" class="btn btn-secondary me-2">Batal</a>
+              <button type="submit" class="btn bg-brand btn-success">
+                {# The button text changes #}
+                {% if target_user %}Simpan Perubahan{% else %}Simpan Pengguna{% endif %}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

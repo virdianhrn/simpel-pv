@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} Manajemen Pengguna {% endblock title %}
+
+{% block navbar %}
+{% with variant='light' %}
+{{ block.super }}
+{% endwith %}
+{% endblock navbar %}
+
+{% block page_header_content %}
+<div class="page-header pt-7 pb-5 bg-white-blue">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center">
+      <h1 class="mb-0">Manajemen Pengguna</h1>
+      <a href="{% url 'accounts:add_user' %}" class="btn btn-success bg-brand">
+        <i class="fa fa-plus me-2"></i> Tambah Pengguna Baru
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock page_header_content %}
+
+{% block content %}
+<div class="container mt-n5">
+  <div class="card mb-4">
+    <div class="card-header pb-0">
+      <h6>Daftar Semua Pengguna</h6>
+    </div>
+    <div class="card-body px-0 pt-0 pb-2">
+      <div class="table-responsive p-0">
+        <table class="table table-striped align-items-center mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th class="text-center text-uppercase text-xs font-weight-bolder">Nama Lengkap</th>
+              <th class="text-center text-uppercase text-xs font-weight-bolder">Username</th>
+              <th class="text-center text-uppercase text-xs font-weight-bolder">Role</th>
+              <th class="text-center text-uppercase text-xs font-weight-bolder">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user_obj in user_list %}
+            <tr>
+              <td class="text-center">
+                <p class="text-sm font-weight-bold mb-0">
+                  <a href="{% url 'accounts:user_profile' user_obj.id %}">
+                    {{ user_obj.get_full_name }}
+                  </a>
+                </p>
+                <p class="text-xs text-secondary mb-0">{{ user_obj.profile.jabatan }}</p>
+              </td class="text-center">
+              <td class="text-center">
+                <p class="text-sm font-weight-bold mb-0">{{ user_obj.username }}</p>
+              </td>
+              <td class="align-middle text-center">
+                {% if user_obj.profile.is_admin %}
+                  <span class="badge bg-gradient-danger">{{ user_obj.profile.get_role_display }}</span>
+                {% else %}
+                  <span class="badge bg-gradient-primary">{{ user_obj.profile.get_role_display }}</span>
+                {% endif %}
+              </td>
+              <td class="d-flex justify-content-center align-items-center gap-2">
+                <a href="{% url 'accounts:user_profile' user_obj.id %}" class="btn btn-sm btn-info mt-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat Profil">
+                  <i class="fa fa-eye"></i>
+                </a>
+                <a href="{% url 'accounts:edit_user' user_obj.id %}" class="btn btn-sm btn-warning mt-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Profil"> {# TODO: Link to 'edit_profile' view #}
+                  <i class="fa fa-edit"></i>
+                </a>
+                <a href="{% url 'accounts:delete_user' user_obj.id %}" class="btn btn-sm btn-danger mt-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus Pengguna">
+                  <i class="fa fa-trash"></i>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+
+            {% if not user_list %}
+            <tr>
+              <td colspan="4" class="text-center py-4 text-muted">Tidak ada data pengguna.</td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

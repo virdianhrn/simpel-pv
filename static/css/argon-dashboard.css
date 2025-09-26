@@ -22431,7 +22431,7 @@ fieldset:disabled .btn {
 
   .dropdown.dropdown-hover .dropdown-menu,
   .dropdown .dropdown-menu {
-    display: block;
+    /* display: block; */
     opacity: 0;
     top: 0;
     pointer-events: none;

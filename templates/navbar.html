@@ -1,14 +1,14 @@
 {% load static %}
 
-<nav class="navbar navbar-expand-lg position-absolute z-index-3 w-100 py-2 shadow-none 
+<nav class="navbar navbar-expand-lg position-absolute w-100 py-2 shadow-none 
   {% if variant == 'light' %}
     navbar-light bg-white
   {% else %}
     d-none
   {% endif %}
-">
+" style="z-index: 1030;">
   <div class="container">
-    <a class="navbar-brand font-weight-bolder letter-wider fs-4 pt-1" href="#">
+    <a class="navbar-brand font-weight-bolder letter-wider fs-4 pt-1" href="{% url 'main:landing_page' %}">
       SIPENA
     </a>
     <button 
@@ -28,25 +28,9 @@
     </button>
     <div class="collapse navbar-collapse" id="navigation">
       <ul class="navbar-nav ms-auto">
-        {% if user.profile.role == 'PL'%}
+        {% if user.is_penyelenggara%}
         <li class="nav-item me-2">
-          <a class="nav-link" href="#">
-            <em class="fa fa-clipboard-check opacity-6 me-1"></em>
-            Dashboard
-          </a>
-        </li>
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <em class="fa fa-user opacity-6 me-1"></em>
-            {{ user }}
-          </a>
-          <ul class="dropdown-menu">     
-            <li><a class="dropdown-item" href="{% url 'authentication:logout' %}">Keluar</a></li>
-          </ul>
-        </li>
-        {% elif user.profile.role == 'AD' %}
-        <li class="nav-item me-2">
-          <a class="nav-link" href="#">
+          <a class="nav-link" href="{% url 'main:dashboard' %}">
             <em class="fa fa-th-large opacity-6 me-1"></em>
             Dashboard
           </a>
@@ -56,7 +40,31 @@
             <em class="fa fa-user opacity-6 me-1"></em>
             {{ user }}
           </a>
-          <ul class="dropdown-menu">    
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{% url 'accounts:my_profile' %}">Akun</a></li>
+            <li><a class="dropdown-item" href="{% url 'authentication:logout' %}">Keluar</a></li>
+          </ul>
+        </li>
+        {% elif user.is_admin %}
+        <li class="nav-item me-2">
+          <a class="nav-link" href="{% url 'main:dashboard' %}">
+            <em class="fa fa-th-large opacity-6 me-1"></em>
+            Dashboard
+          </a>
+        </li>
+        <li class="nav-item me-2">
+          <a class="nav-link" href="{% url 'accounts:manage' %}">
+            <em class="fa fa-users-cog opacity-6 me-1"></em>
+            Atur Pengguna
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <em class="fa fa-user opacity-6 me-1"></em>
+            {{ user }}
+          </a>
+          <ul class="dropdown-menu">  
+            <li><a class="dropdown-item" href="{% url 'accounts:my_profile' %}">Akun</a></li>  
             <li><a class="dropdown-item" href="{% url 'authentication:logout' %}">Keluar</a></li>
           </ul>
         </li>
