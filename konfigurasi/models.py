@@ -4,6 +4,7 @@ class TahunAnggaran(models.Model):
     class StatusChoices(models.TextChoices):
         AKTIF = 'AKTIF', 'Aktif'
         DITUTUP = 'DITUTUP', 'Ditutup'
+        DIARSIPKAN = 'DIARSIPKAN', 'Diarsipkan'
 
     tahun = models.PositiveIntegerField(
         primary_key=True, # The year itself is the best primary key

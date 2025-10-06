@@ -25,6 +25,7 @@ urlpatterns = [
     path('', include('authentication.urls')),
     path("accounts/", include("accounts.urls")),
     path("pelatihan/", include("pelatihan.urls")),
+    path("konfigurasi/", include("konfigurasi.urls")),
 ]
 
 if settings.DEBUG:
