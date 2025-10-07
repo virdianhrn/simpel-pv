@@ -6,6 +6,7 @@ from django.db import models
 from django.utils.text import slugify
 from django.contrib.auth import get_user_model
 
+from konfigurasi.models import StatusDokumen
 
 User = get_user_model()
 class Pelatihan(models.Model):
@@ -28,7 +29,7 @@ class Pelatihan(models.Model):
             return 0
         
         # Use the new TextChoices class for clarity
-        uploaded = self.dokumen.filter(status=PelatihanDokumen.DocumentStatus.TERVERIFIKASI).count()
+        uploaded = self.dokumen.filter(status=StatusDokumen.TERVERIFIKASI).count()
         return int((uploaded / total) * 100)
 
     def __str__(self):
@@ -50,11 +51,6 @@ def upload_to_dokumen(instance, filename):
 
 class PelatihanDokumen(models.Model):
     # 1. ENCAPSULATED CHOICES USING TextChoices
-    class DocumentStatus(models.TextChoices):
-        KOSONG = '0', 'Kosong'
-        DALAM_PROSES_VERIFIKASI = '1', 'Dalam Proses Verifikasi'
-        PERLU_REVISI = '2', 'Perlu Revisi'
-        TERVERIFIKASI = '3', 'Terverifikasi'
 
     class DocumentName(models.TextChoices):
         DRH_PESERTA = '00', 'Daftar Riwayat Hidup Peserta'
@@ -83,11 +79,11 @@ class PelatihanDokumen(models.Model):
         verbose_name="Jenis Dokumen",
     )
 
-    status = models.CharField(
-        max_length=1,
-        choices=DocumentStatus.choices,
+    status = models.ForeignKey(
+        StatusDokumen,
+        on_delete=models.PROTECT,
         verbose_name="Status Dokumen",
-        default=DocumentStatus.KOSONG
+        default=StatusDokumen.KOSONG
     )
 
     file_url = models.FileField(
@@ -110,6 +106,22 @@ class PelatihanDokumen(models.Model):
     def get_all_document_codes(cls):
         return cls.DocumentName.values
         
+    @property
+    def is_kosong(self):
+        return self.status_id == StatusDokumen.KOSONG
+
+    @property
+    def is_dalam_proses_verifikasi(self):
+        return self.status_id == StatusDokumen.DALAM_PROSES_VERIFIKASI
+
+    @property
+    def is_perlu_revisi(self):
+        return self.status_id == StatusDokumen.PERLU_REVISI
+
+    @property
+    def is_terverifikasi(self):
+        return self.status_id == StatusDokumen.TERVERIFIKASI
+
     def __str__(self):
         # 2. USE get_FOO_display()
         return f"{self.get_nama_display()} - {self.pelatihan.judul}"

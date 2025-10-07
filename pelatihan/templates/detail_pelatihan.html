@@ -123,11 +123,11 @@
                                     
                                 </td>
                                 <td class="text-center text-sm font-weight-bold">
-                                    {% if form.instance.status == STATUS_DOKUMEN_PERLU_REVISI %}
+                                    {% if form.instance.is_perlu_revisi %}
                                         <span class="badge rounded-pill bg-danger">{{ form.instance.get_status_display }}</span>
-                                    {% elif form.instance.status == STATUS_DOKUMEN_TERVERIFIKASI %}
+                                    {% elif form.instance.is_terverifikasi %}
                                         <span class="badge rounded-pill bg-success">{{ form.instance.get_status_display }}</span>
-                                    {% elif form.instance.status == STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI %}
+                                    {% elif form.instance.is_dalam_proses_verifikasi %}
                                         <span class="badge rounded-pill bg-info">{{ form.instance.get_status_display }}</span>
                                     {% else %}
                                         <span class="badge rounded-pill bg-secondary">{{ form.instance.get_status_display }}</span>

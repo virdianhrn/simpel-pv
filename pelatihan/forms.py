@@ -3,10 +3,6 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.html import format_html
 
-DocStatus = PelatihanDokumen.DocumentStatus
-from django import forms
-from .models import Pelatihan
-
 class PelatihanForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         # Get the user from the keyword arguments before initializing

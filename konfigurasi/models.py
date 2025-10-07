@@ -35,7 +35,7 @@ class TahunAnggaran(models.Model):
 class Role(models.Model):
     ADMIN = 'AD'
     PENYELENGGARA = 'PL'
-    
+
     id = models.CharField(primary_key=True, max_length=2, help_text="Contoh: AD, PL")
     nama = models.CharField(max_length=50, unique=True)
 
@@ -50,3 +50,21 @@ class Role(models.Model):
         Example: (('AD', 'Admin'), ('PL', 'Penyelenggara'))
         """
         return tuple((role.id, role.nama) for role in cls.objects.all())
+
+class StatusDokumen(models.Model):
+    # Define constants for the primary keys
+    KOSONG = 1
+    DALAM_PROSES_VERIFIKASI = 2
+    PERLU_REVISI = 3
+    TERVERIFIKASI = 4
+
+    id = models.PositiveSmallIntegerField(primary_key=True)
+    nama = models.CharField(max_length=50, unique=True)
+    keterangan = models.TextField(blank=True, help_text="Deskripsi singkat mengenai status ini.")
+
+    class Meta:
+        verbose_name = "Status Dokumen"
+        verbose_name_plural = "Daftar Status Dokumen"
+
+    def __str__(self):
+        return self.nama

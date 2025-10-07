@@ -15,8 +15,7 @@ from PyPDF2 import PdfMerger, PdfReader, PdfWriter
 from accounts.decorators import admin_required, admin_or_pelatihan_owner_required
 from .forms import DokumenFormSet, PelatihanForm, VerifikasiDokumenForm
 from .models import Pelatihan, PelatihanDokumen
-
-DocStatus = PelatihanDokumen.DocumentStatus
+from konfigurasi import StatusDokumen
 
 @admin_required
 def verifikasi_dokumen(request, pelatihan_id, document_id):
@@ -47,11 +46,7 @@ class DetailView(LoginRequiredMixin, View):
 
         context = {
             'pelatihan': self.pelatihan,
-            'formset': formset,
-            'STATUS_DOKUMEN_KOSONG': DocStatus.KOSONG,
-            'STATUS_DOKUMEN_DALAM_PROSES_VERIFIKASI': DocStatus.DALAM_PROSES_VERIFIKASI,
-            'STATUS_DOKUMEN_PERLU_REVISI': DocStatus.PERLU_REVISI,
-            'STATUS_DOKUMEN_TERVERIFIKASI': DocStatus.TERVERIFIKASI,
+            'formset': formset
         }
         # Render the single, merged template
         return render(request, 'detail_pelatihan.html', context)
@@ -70,7 +65,7 @@ class DetailView(LoginRequiredMixin, View):
             else:
                 for form in formset:
                     if 'file_url' in form.changed_data:
-                        form.instance.status = DocStatus.DALAM_PROSES_VERIFIKASI
+                        form.instance.status = StatusDokumen.DALAM_PROSES_VERIFIKASI
                         break
                 formset.save()
                 messages.success(request, 'Dokumen berhasil diunggah!')
