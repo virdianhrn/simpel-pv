@@ -31,3 +31,22 @@ class TahunAnggaran(models.Model):
 
     def __str__(self):
         return str(self.tahun)
+
+class Role(models.Model):
+    ADMIN = 'AD'
+    PENYELENGGARA = 'PL'
+    
+    id = models.CharField(primary_key=True, max_length=2, help_text="Contoh: AD, PL")
+    nama = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.nama
+
+    @classmethod
+    def get_choices(cls):
+        """
+        Queries the database and returns all roles in the format
+        expected by a form's 'choices' attribute.
+        Example: (('AD', 'Admin'), ('PL', 'Penyelenggara'))
+        """
+        return tuple((role.id, role.nama) for role in cls.objects.all())

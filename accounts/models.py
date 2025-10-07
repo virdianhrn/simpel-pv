@@ -1,6 +1,7 @@
 import os, shortuuid
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from konfigurasi.models import Role
 
 def upload_to_foto(instance, filename):
     extension = os.path.splitext(filename)[1]
@@ -9,17 +10,13 @@ def upload_to_foto(instance, filename):
 
 class User(AbstractUser):
     # The 'id' field is now a CharField without a default
-    id = models.CharField(
-        primary_key=True,
-        max_length=30, # Increased length to accommodate the prefix
-        editable=False
+    role = models.ForeignKey(
+        Role,
+        on_delete=models.PROTECT,
+        related_name='users',
+        default=Role.PENYELENGGARA
     )
-
-    class Role(models.TextChoices):
-        ADMIN = "AD", 'Admin'
-        PENYELENGGARA = "PL", 'Penyelenggara'
     
-    role = models.CharField(max_length=2, choices=Role.choices)
     jabatan = models.CharField(max_length=255, blank=True)
     foto = models.ImageField(upload_to=upload_to_foto, blank=True)
 
@@ -30,7 +27,7 @@ class User(AbstractUser):
         # This check ensures the ID is only generated once, when the user is first created.
         if not self.pk:
             # Example: 'AD_vytxeBfsS5wA48ag54f2yN'
-            self.id = f"{self.role}_{shortuuid.uuid()}"
+            self.id = f"{self.role.id}_{shortuuid.uuid()}"
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -38,8 +35,8 @@ class User(AbstractUser):
     
     @property
     def is_admin(self):
-        return self.role == self.Role.ADMIN
+        return self.role.id == Role.ADMIN
 
     @property
     def is_penyelenggara(self):
-        return self.role == self.Role.PENYELENGGARA
+        return self.role.id == Role.PENYELENGGARA

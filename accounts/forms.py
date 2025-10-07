@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model
+from konfigurasi.models import Role
 
 # Get the custom User model you defined
 User = get_user_model()
@@ -9,7 +10,7 @@ class CreateUserForm(forms.ModelForm):
     password2 = forms.CharField(label='Confirm Password', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
 
     role = forms.ChoiceField(
-        choices=User.Role.choices,
+        choices=Role.get_choices(),
         widget=forms.RadioSelect,
         required=True,
         label="User Role"
@@ -48,7 +49,7 @@ class CreateUserForm(forms.ModelForm):
 class EditUserForm(forms.ModelForm):
 
     role = forms.ChoiceField(
-        choices=User.Role.choices,
+        choices=Role.get_choices(),
         widget=forms.RadioSelect,
         required=True,
         label="User Role"
