@@ -10,6 +10,12 @@ def upload_to_foto(instance, filename):
 
 class User(AbstractUser):
     # The 'id' field is now a CharField without a default
+    id = models.CharField(
+        primary_key=True,
+        max_length=30,
+        editable=False
+    )
+    
     role = models.ForeignKey(
         Role,
         on_delete=models.PROTECT,

@@ -55,9 +55,9 @@
               </td>
               <td class="align-middle text-center">
                 {% if user_obj.is_admin %}
-                  <span class="badge bg-gradient-danger">{{ user_obj.get_role_display }}</span>
+                  <span class="badge bg-gradient-danger">{{ user_obj.role }}</span>
                 {% else %}
-                  <span class="badge bg-gradient-primary">{{ user_obj.get_role_display }}</span>
+                  <span class="badge bg-gradient-primary">{{ user_obj.role }}</span>
                 {% endif %}
               </td>
               <td class="d-flex justify-content-center align-items-center gap-2">

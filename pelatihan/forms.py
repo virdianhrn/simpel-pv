@@ -2,14 +2,27 @@ from .models import Pelatihan, PelatihanDokumen
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.html import format_html
+from konfigurasi.models import StatusDokumen
 
+verification_queryset = StatusDokumen.objects.filter(
+    pk__in=[
+        StatusDokumen.PERLU_REVISI,
+        StatusDokumen.TERVERIFIKASI
+    ]
+)
 class PelatihanForm(forms.ModelForm):
+    # Explicitly define the 'pic' field
+    pic = forms.ModelChoiceField(
+        queryset=User.objects.filter(role__id=Role.PENYELENGGARA).order_by('first_name'),
+        empty_label=None,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label="PIC Penyelenggara"
+    )
+
     def __init__(self, *args, **kwargs):
-        # Get the user from the keyword arguments before initializing
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
-        # If a user is passed and they are NOT an admin, disable the 'pic' field.
         if self.user and not self.user.is_admin:
             if 'pic' in self.fields:
                 del self.fields['pic']
@@ -19,13 +32,11 @@ class PelatihanForm(forms.ModelForm):
         fields = ['judul', 'pic', 'tanggal_mulai', 'tanggal_selesai', 'durasi']
         widgets = {
             'judul': forms.TextInput(attrs={'class': 'form-control'}),
-            'pic': forms.Select(attrs={'class': 'form-control'}),
             'tanggal_mulai': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'tanggal_selesai': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'durasi': forms.NumberInput(attrs={'class': 'form-control'}),
         }
         labels = {
-            'pic': 'PIC Penyelenggara',
             'durasi': 'Durasi (JP)',
         }
 
@@ -64,13 +75,11 @@ DokumenFormSet = forms.inlineformset_factory(
 )
 
 class VerifikasiDokumenForm(forms.ModelForm):
-    VERIFIKASI_CHOICES = [
-        (DocStatus.PERLU_REVISI, DocStatus.PERLU_REVISI.label),
-        (DocStatus.TERVERIFIKASI, DocStatus.TERVERIFIKASI.label),
-    ]
-    status = forms.ChoiceField(
-        choices = VERIFIKASI_CHOICES,
-        widget=forms.Select(attrs={'class': 'form-select', 'rows': 3})
+    status = forms.ModelChoiceField(
+        queryset = verification_queryset,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label="Status Verifikasi",
+        empty_label=None
     )
     notes = forms.CharField(
         required=True,

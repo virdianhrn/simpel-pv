@@ -9,11 +9,11 @@ class CreateUserForm(forms.ModelForm):
     # Add a password confirmation field, which isn't on the model
     password2 = forms.CharField(label='Confirm Password', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
 
-    role = forms.ChoiceField(
-        choices=Role.get_choices(),
+    role = forms.ModelChoiceField(
+        queryset=Role.objects.all(),
         widget=forms.RadioSelect,
         required=True,
-        label="User Role"
+        label="Role"
     )
 
     class Meta:
@@ -48,8 +48,8 @@ class CreateUserForm(forms.ModelForm):
 
 class EditUserForm(forms.ModelForm):
 
-    role = forms.ChoiceField(
-        choices=Role.get_choices(),
+    role = forms.ModelChoiceField(
+        queryset=Role.objects.all(),
         widget=forms.RadioSelect,
         required=True,
         label="User Role"

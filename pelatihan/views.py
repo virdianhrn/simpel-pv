@@ -15,7 +15,7 @@ from PyPDF2 import PdfMerger, PdfReader, PdfWriter
 from accounts.decorators import admin_required, admin_or_pelatihan_owner_required
 from .forms import DokumenFormSet, PelatihanForm, VerifikasiDokumenForm
 from .models import Pelatihan, PelatihanDokumen
-from konfigurasi import StatusDokumen
+from konfigurasi.models import StatusDokumen
 
 @admin_required
 def verifikasi_dokumen(request, pelatihan_id, document_id):
@@ -59,16 +59,15 @@ class DetailView(LoginRequiredMixin, View):
 
         if formset.is_valid():
             # Handle the data submission
-            formset.save()
             if request.user.is_admin:
                 messages.success(request, 'Verifikasi dokumen berhasil disimpan!')
             else:
                 for form in formset:
                     if 'file_url' in form.changed_data:
-                        form.instance.status = StatusDokumen.DALAM_PROSES_VERIFIKASI
+                        form.instance.status_id = StatusDokumen.DALAM_PROSES_VERIFIKASI
                         break
-                formset.save()
                 messages.success(request, 'Dokumen berhasil diunggah!')
+            formset.save()
         else:
             # Handle form errors
             for form in formset:
@@ -128,9 +127,9 @@ def skip_document(request, pelatihan_id, document_id):
         buffer.seek(0)
 
         if request.user.is_admin:
-            document.status = DocStatus.TERVERIFIKASI
+            document.status_id = StatusDokumen.TERVERIFIKASI
         else:
-            document.status = DocStatus.DALAM_PROSES_VERIFIKASI
+            document.status_id = StatusDokumen.DALAM_PROSES_VERIFIKASI
         document.file_url.save('blank.pdf', ContentFile(buffer.read()))
         
         buffer.close()
@@ -162,7 +161,7 @@ def download_merged_docs(request, pelatihan_id):
 
     pdf_merger = PdfMerger()
     for document in documents_to_merge:
-        reader = PdfReader(document.file_url.path)
+        reader = PdfReader(document.file_url)
         page = reader.pages[0]
         if page.extract_text().strip(): # Check if the page is not empty
             pdf_merger.append(reader)
