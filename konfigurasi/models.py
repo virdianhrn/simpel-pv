@@ -17,6 +17,12 @@ class TahunAnggaran(models.Model):
         default=StatusChoices.AKTIF,
         help_text="Status tahun anggaran (hanya pelatihan dengan tahun berstatus 'Aktif' yang bisa dibuat)"
     )
+
+    target = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Target Paket Pelatihan",
+        help_text="Jumlah target paket pelatihan untuk tahun anggaran ini."
+    )
     
     keterangan = models.TextField(
         blank=True,

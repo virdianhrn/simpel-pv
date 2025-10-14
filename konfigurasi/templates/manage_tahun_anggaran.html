@@ -17,7 +17,7 @@
     </div>
 </div>
 
-<div class="container mt-n5">
+<div class="container mt-n5 pb-5">
     <div class="row justify-content-center">
         <div class="col-lg-10"> 
             <div class="card mb-4">
@@ -41,15 +41,19 @@
                         
                         <div class="mb-3">
                             <label class="form-label">{{ form.status.label }}</label>
-                            <div>
-                            {% for radio in form.status %}
-                                <div class="form-check form-check-inline">
-                                    {{ radio.tag }}
-                                    <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
-                                </div>
-                            {% endfor %}
-                            </div>
+                            {{ form.status }}
                              {% for error in form.status.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.keterangan.id_for_label }}" class="form-label">{{ form.target.label }}</label>
+                            {{ form.target }}
+                            {% if form.target.help_text %}
+                                <small class="form-text text-muted">{{ form.target.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.target.errors %}
                                 <div class="text-danger small mt-1">{{ error }}</div>
                             {% endfor %}
                         </div>
@@ -81,45 +85,64 @@
                         <table class="table table-hover mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th class="py-3 px-4">Tahun</th>
-                                    <th class="py-3 px-4">Status</th>
-                                    <th class="py-3 px-4">Keterangan</th>
-                                    <th class="py-3 px-4 text-end">Aksi</th>
+                                    <th class="text-center text-uppercase text-xs font-weight-bolder">Tahun</th>
+                                    <th class="text-center text-uppercase text-xs font-weight-bolder">Status</th>
+                                    <th class="text-center text-uppercase text-xs font-weight-bolder">Target Paket</th>
+                                    <th class="text-center text-uppercase text-xs font-weight-bolder">Keterangan</th>
+                                    <th class="text-end text-uppercase text-xs font-weight-bolder">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for tahun in tahun_anggaran_list %}
+                                {% for ta_object in tahun_anggaran_list %}
                                 <tr>
-                                    <td class="py-3 px-4"><strong>{{ tahun.tahun }}</strong></td>
-                                    <td class="py-3 px-4">
-                                        {% if tahun.status == 'AKTIF' %}
+                                    <td class="align-middle text-center"><strong>{{ ta_object.tahun }}</strong></td>
+                                    <td class="align-middle text-center">
+                                        {% if ta_object.status == 'AKTIF' %}
                                             <span class="badge bg-success">Aktif</span>
-                                        {% elif tahun.status == 'DITUTUP' %}
+                                        {% elif ta_object.status == 'DITUTUP' %}
                                             <span class="badge bg-secondary">Ditutup</span>
                                         {% else %}
                                             <span class="badge bg-dark">Diarsipkan</span>
                                         {% endif %}
                                     </td>
-                                    <td class="py-3 px-4">{{ tahun.keterangan|default:"-" }}</td>
-                                    <td class="py-3 px-4 text-end">
-                                        <form method="post" class="d-inline">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="tahun_id" value="{{ tahun.pk }}">
+                                    <td class="align-middle text-center">{{ ta_object.target }}</td>
+                                    <td class="align-middle text-center">{{ ta_object.keterangan|default:"-" }}</td>
+                                    <td class="align-middle text-end">
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'konfigurasi:edit_tahun_anggaran' tahun_id=ta_object.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
                                             
                                             <div class="btn-group" role="group">
-                                                {% if tahun.status != 'AKTIF' %}
-                                                <button type="submit" name="update_status" value="AKTIF" class="btn btn-sm btn-outline-success">Set Aktif</button>
-                                                {% endif %}
-            
-                                                {% if tahun.status != 'DITUTUP' %}
-                                                <button type="submit" name="update_status" value="DITUTUP" class="btn btn-sm btn-outline-secondary">Tutup</button>
-                                                {% endif %}
-            
-                                                {% if tahun.status != 'ARSIP' %}
-                                                <button type="submit" name="update_status" value="ARSIP" class="btn btn-sm btn-outline-dark">Arsipkan</button>
-                                                {% endif %}
+                                                <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    Ubah Status
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end">
+                                                    <form method="post">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="tahun_id" value="{{ ta_object.pk }}">
+                                                        
+                                                        {% if ta_object.status != 'AKTIF' %}
+                                                        <li><button type="submit" name="update_status" value="AKTIF" class="dropdown-item">Set Aktif</button></li>
+                                                        {% endif %}
+
+                                                        {% if ta_object.status != 'DITUTUP' %}
+                                                        <li><button type="submit" name="update_status" value="DITUTUP" class="dropdown-item">Tutup</button></li>
+                                                        {% endif %}
+
+                                                        {% if ta_object.status != 'DIARSIPKAN' %}
+                                                        <li><button type="submit" name="update_status" value="DIARSIPKAN" class="dropdown-item">Arsipkan</button></li>
+                                                        {% endif %}
+                                                    </form>
+                                                </ul>
+                                                <button type="button" 
+                                                        class="btn btn-sm btn-outline-danger" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#deleteConfirmationModal"
+                                                        data-delete-url="{% url 'konfigurasi:delete_tahun_anggaran' tahun_id=ta_object.pk %}"
+                                                        data-tahun-nama="{{ ta_object.tahun }}">
+                                                    Hapus
+                                                </button>
                                             </div>
-                                        </form>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% empty %}
@@ -135,4 +158,32 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Konfirmasi Hapus</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Apakah Anda yakin ingin menghapus Tahun Anggaran <strong id="tahunNameToDelete"></strong>?
+                <br><br>
+                <small class="text-danger">Tindakan ini tidak dapat diurungkan.</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <form id="deleteForm" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Ya, Hapus</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+    <script src="{% static 'konfigurasi/js/delete_modal.js' %}"></script>
+{% endblock scripts %}
+
 {% endblock content %}
