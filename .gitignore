@@ -52,7 +52,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-.sipenaenv
+.simpelpvenv
 
 # PyCharm & VSCode
 .idea/

@@ -2,14 +2,17 @@ from .models import Pelatihan, PelatihanDokumen
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.html import format_html
-from konfigurasi.models import StatusDokumen
+from django.contrib.auth import get_user_model
+from konfigurasi.models import StatusDokumen, Role
 
+User = get_user_model()
 verification_queryset = StatusDokumen.objects.filter(
     pk__in=[
         StatusDokumen.PERLU_REVISI,
         StatusDokumen.TERVERIFIKASI
     ]
 )
+
 class PelatihanForm(forms.ModelForm):
     # Explicitly define the 'pic' field
     pic = forms.ModelChoiceField(
