@@ -1,5 +1,5 @@
 """
-ASGI config for sipena project.
+ASGI config for simpel-pv project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sipena.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'simpel-pv.settings')
 
 application = get_asgi_application()
