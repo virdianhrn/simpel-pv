@@ -7,6 +7,7 @@ from django.utils.text import slugify
 from django.contrib.auth import get_user_model
 
 from konfigurasi.models import StatusDokumen, Kejuruan, TahunAnggaran
+
 User = get_user_model()
 class Pelatihan(models.Model):
     class JenisPelatihan(models.TextChoices):
@@ -48,7 +49,8 @@ class Pelatihan(models.Model):
         max_length=100, 
         verbose_name="Waktu Pelaksanaan", 
         help_text="Contoh: 08:00 s.d. 16:00", 
-        blank=True)
+        blank=True
+    )
 
     # --- Administrasi ---
     tahun_anggaran = models.ForeignKey(TahunAnggaran, on_delete=models.PROTECT, related_name='pelatihan')
@@ -102,10 +104,10 @@ class Pelatihan(models.Model):
         elif laki == perempuan:
             return "Seimbang"
 
-    def clean(self):
-        super().clean()
-        if self.tanggal_selesai and self.tanggal_mulai and self.tanggal_selesai < self.tanggal_mulai:
-            raise ValidationError("Tanggal selesai harus setelah tanggal mulai")
+    # def clean(self):
+    #     super().clean()
+    #     if self.tanggal_selesai and self.tanggal_mulai and self.tanggal_selesai < self.tanggal_mulai:
+    #         raise ValidationError("Tanggal selesai harus setelah tanggal mulai")
 
     def persentase_progress(self):
         total = self.dokumen.count()

@@ -54,18 +54,18 @@
                     {{ pelatihan.judul }}
                   </a>
                 </p>
-                <p class="text-xs text-secondary mb-0">{{ pelatihan.durasi }} JP</p>
+                <p class="text-xs text-secondary mb-0">{{ pelatihan.durasi_jp }} JP</p>
               </td>
               {% if user.is_admin %}
               <td class="align-middle text-center">
-                <p class="text-sm font-weight-bold mb-0">{{ pelatihan.pic }}</p>
+                <p class="text-sm font-weight-bold mb-0">{{ pelatihan.penyelenggara }}</p>
               </td>
               {% endif %}
               <td class="align-middle text-center">
-                <span class="text-secondary text-sm font-weight-bold">{{ pelatihan.tanggal_mulai|date:"d M Y" }}</span>
+                <span class="text-secondary text-sm font-weight-bold">{{ pelatihan.tanggal_mulai_rencana|date:"d M Y" }}</span>
               </td>
               <td class="align-middle text-center">
-                <span class="text-secondary text-sm font-weight-bold">{{ pelatihan.tanggal_selesai|date:"d M Y" }}</span>
+                <span class="text-secondary text-sm font-weight-bold">{{ pelatihan.tanggal_selesai_rencana|date:"d M Y" }}</span>
               </td>
               <td class="align-middle">
                 <div class="d-flex align-items-center justify-content-center px-2">

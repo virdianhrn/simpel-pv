@@ -16,7 +16,6 @@ verification_queryset = StatusDokumen.objects.filter(
 class PelatihanForm(forms.ModelForm):
     penyelenggara = forms.ModelChoiceField(
         queryset=User.objects.filter(role__id=Role.PENYELENGGARA).order_by('first_name'),
-        empty_label=None,
         widget=forms.Select(attrs={'class': 'form-select'}),
         label="PIC Penyelenggara"
     )
@@ -78,8 +77,8 @@ class PelatihanForm(forms.ModelForm):
             'tanggal_mulai_rencana', 'tanggal_selesai_rencana'
         ]
 
-        # Kasus 1: Admin membuat Pelatihan BARU (self.instance.pk adalah None)
-        if self.user and self.user.is_admin and not self.instance.pk:
+        # Kasus 1: Admin membuat Pelatihan BARU
+        if self.user and self.user.is_admin and self.instance._state.adding:
             fields_to_show = admin_only_fields
             all_fields = list(self.fields.keys())
             for field_name in all_fields:

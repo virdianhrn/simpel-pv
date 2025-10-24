@@ -76,6 +76,7 @@ class StatusDokumen(models.Model):
         return self.nama
 
 class Kejuruan(models.Model):
+    id = models.CharField(primary_key=True, max_length=3, help_text="Contoh: TIK, LAS")
     nama = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
