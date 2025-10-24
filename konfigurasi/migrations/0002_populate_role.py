@@ -17,6 +17,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('konfigurasi', '0001_initial'),
     ]
+    
     operations = [
         migrations.RunPython(create_initial_roles),
     ]
