@@ -19,28 +19,25 @@ class Pelatihan(models.Model):
         MTU = 'MTU', 'MTU'
    
 
+    # --- Isian Awal ---
     id = ShortUUIDField(primary_key=True, length=22, max_length=22)
-    judul = models.CharField(max_length=255, verbose_name="Program Pelatihan")
     kejuruan = models.ForeignKey(Kejuruan, on_delete=models.PROTECT, related_name='pelatihan')
-    jenis_pelatihan = models.CharField(
-        max_length=15, 
-        choices=JenisPelatihan.choices, 
-        verbose_name="Jenis Pelatihan", 
-        null=True, 
-        blank=True
-    )
+    judul = models.CharField(max_length=255, verbose_name="Program Pelatihan")
+    paket_ke = models.PositiveSmallIntegerField(verbose_name="Paket Ke-")
     penyelenggara = models.ForeignKey(
         User,
         verbose_name="Penyelenggara (PIC)",
         on_delete=models.PROTECT,
         related_name='pelatihan'
     )
-
-    # --- Detail Pelaksanaan ---
-    metode = models.CharField(max_length=15, choices=MetodePelatihan.choices, verbose_name="Metode Pelatihan", blank=True)
-    tempat_pelaksanaan = models.CharField(max_length=255, blank=True)
     tanggal_mulai_rencana = models.DateField(verbose_name="Tanggal Mulai (Rencana)")
     tanggal_selesai_rencana = models.DateField(verbose_name="Tanggal Selesai (Rencana)")
+    tahun_anggaran = models.ForeignKey(TahunAnggaran, on_delete=models.PROTECT, related_name='pelatihan')
+
+    # --- Detail Pelaksanaan ---
+    jenis_pelatihan = models.CharField(max_length=15, choices=JenisPelatihan.choices, verbose_name="Jenis Pelatihan", blank=True)
+    metode = models.CharField(max_length=15, choices=MetodePelatihan.choices, verbose_name="Metode Pelatihan", blank=True)
+    tempat_pelaksanaan = models.CharField(max_length=255, blank=True)
     tanggal_mulai_aktual = models.DateField(verbose_name="Tanggal Mulai (Aktual)", null=True)
     tanggal_selesai_aktual = models.DateField(verbose_name="Tanggal Selesai (Aktual)", null=True)
     durasi_jp = models.PositiveSmallIntegerField(verbose_name="Durasi Pelatihan (JP)", null=True, blank=True)
@@ -53,8 +50,6 @@ class Pelatihan(models.Model):
     )
 
     # --- Administrasi ---
-    tahun_anggaran = models.ForeignKey(TahunAnggaran, on_delete=models.PROTECT, related_name='pelatihan')
-    paket_ke = models.PositiveSmallIntegerField(verbose_name="Paket Ke-")
     no_sk = models.CharField(max_length=255, verbose_name="No. SK Penyelenggaraan", blank=True)
     tanggal_sk = models.DateField(verbose_name="Tgl. SK Penyelenggaraan", null=True, blank=True)
     tentang_sk = models.TextField(verbose_name="Tentang SK", blank=True)
