@@ -14,34 +14,110 @@ verification_queryset = StatusDokumen.objects.filter(
 )
 
 class PelatihanForm(forms.ModelForm):
-    # Explicitly define the 'pic' field
-    pic = forms.ModelChoiceField(
+    penyelenggara = forms.ModelChoiceField(
         queryset=User.objects.filter(role__id=Role.PENYELENGGARA).order_by('first_name'),
         empty_label=None,
         widget=forms.Select(attrs={'class': 'form-select'}),
         label="PIC Penyelenggara"
     )
 
+    class Meta:
+        model = Pelatihan
+        fields = [
+            'judul', 'kejuruan', 'jenis_pelatihan', 'penyelenggara', 'metode',
+            'tempat_pelaksanaan', 'tanggal_mulai_rencana', 'tanggal_selesai_rencana',
+            'tanggal_mulai_aktual', 'tanggal_selesai_aktual', 'durasi_jp',
+            'jam_per_hari', 'waktu_pelatihan', 'tahun_anggaran', 'paket_ke',
+            'no_sk', 'tanggal_sk', 'tentang_sk', 'jabatan_penandatangan',
+            'nama_penandatangan', 'nip_penandatangan', 'tanggal_penandatangan',
+            'jumlah_peserta_laki', 'jumlah_peserta_perempuan', 'jumlah_lulus',
+            'jumlah_belum_lulus', 'alasan_belum_lulus', 'rata_rata_pendidikan',
+            'rata_rata_usia', 'rata_rata_domisili', 'keterangan_lanjutan'
+        ]
+        
+        # Menambahkan widget untuk semua field agar sesuai dengan gaya Bootstrap
+        widgets = {
+            'judul': forms.TextInput(attrs={'class': 'form-control'}),
+            'kejuruan': forms.Select(attrs={'class': 'form-select'}),
+            'jenis_pelatihan': forms.Select(attrs={'class': 'form-select'}),
+            'metode': forms.Select(attrs={'class': 'form-select'}),
+            'tempat_pelaksanaan': forms.TextInput(attrs={'class': 'form-control'}),
+            'tanggal_mulai_rencana': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'tanggal_selesai_rencana': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'tanggal_mulai_aktual': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'tanggal_selesai_aktual': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'durasi_jp': forms.NumberInput(attrs={'class': 'form-control'}),
+            'jam_per_hari': forms.NumberInput(attrs={'class': 'form-control'}),
+            'waktu_pelatihan': forms.TextInput(attrs={'class': 'form-control'}),
+            'tahun_anggaran': forms.Select(attrs={'class': 'form-select'}),
+            'paket_ke': forms.NumberInput(attrs={'class': 'form-control'}),
+            'no_sk': forms.TextInput(attrs={'class': 'form-control'}),
+            'tanggal_sk': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'tentang_sk': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'jabatan_penandatangan': forms.TextInput(attrs={'class': 'form-control'}),
+            'nama_penandatangan': forms.TextInput(attrs={'class': 'form-control'}),
+            'nip_penandatangan': forms.TextInput(attrs={'class': 'form-control'}),
+            'tanggal_penandatangan': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'jumlah_peserta_laki': forms.NumberInput(attrs={'class': 'form-control'}),
+            'jumlah_peserta_perempuan': forms.NumberInput(attrs={'class': 'form-control'}),
+            'jumlah_lulus': forms.NumberInput(attrs={'class': 'form-control'}),
+            'jumlah_belum_lulus': forms.NumberInput(attrs={'class': 'form-control'}),
+            'alasan_belum_lulus': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'rata_rata_pendidikan': forms.TextInput(attrs={'class': 'form-control'}),
+            'rata_rata_usia': forms.NumberInput(attrs={'class': 'form-control'}),
+            'rata_rata_domisili': forms.TextInput(attrs={'class': 'form-control'}),
+            'keterangan_lanjutan': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
-        if self.user and not self.user.is_admin:
-            if 'pic' in self.fields:
-                del self.fields['pic']
+        admin_create_fields = [
+            'judul', 'kejuruan', 'penyelenggara', 'tahun_anggaran', 'paket_ke',
+            'tanggal_mulai_rencana', 'tanggal_selesai_rencana'
+        ]
+        
+        penyelenggara_readonly_fields = [
+            'judul', 'kejuruan', 'penyelenggara', 'tahun_anggaran', 'paket_ke',
+            'tanggal_mulai_rencana', 'tanggal_selesai_rencana'
+        ]
 
+        # Kasus 1: Admin membuat Pelatihan BARU (self.instance.pk adalah None)
+        if self.user and self.user.is_admin and not self.instance.pk:
+            fields_to_show = admin_create_fields
+            all_fields = list(self.fields.keys())
+            for field_name in all_fields:
+                if field_name not in fields_to_show:
+                    self.fields.pop(field_name) # Hapus field lain dari formulir
+        
+        # Kasus 2: Penyelenggara mengedit Pelatihan
+        elif self.user and not self.user.is_admin and self.instance.pk:
+            for field_name in penyelenggara_readonly_fields:
+                if field_name in self.fields:
+                    self.fields[field_name].disabled = True
+        
+        # Kasus 3: Admin mengedit Pelatihan
+        # Tidak perlu melakukan apa-apa, formulir akan tampil lengkap dan bisa diedit
+
+
+class InstrukturPelatihanForm(forms.ModelForm):
+    """Form ini digunakan di dalam formset untuk menata field instruktur."""
     class Meta:
-        model = Pelatihan
-        fields = ['judul', 'pic', 'tanggal_mulai', 'tanggal_selesai', 'durasi']
+        model = InstrukturPelatihan
+        fields = ['instruktur', 'materi']
         widgets = {
-            'judul': forms.TextInput(attrs={'class': 'form-control'}),
-            'tanggal_mulai': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'tanggal_selesai': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'durasi': forms.NumberInput(attrs={'class': 'form-control'}),
+            'instruktur': forms.Select(attrs={'class': 'form-select'}),
+            'materi': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
         }
-        labels = {
-            'durasi': 'Durasi (JP)',
-        }
+
+InstrukturPelatihanFormSet = inlineformset_factory(
+    parent_model=Pelatihan,
+    model=InstrukturPelatihan,
+    form=InstrukturPelatihanForm,
+    extra=1,
+    can_delete=True,
+)
 
 class LampiranForm(forms.ModelForm):
     class Meta:
@@ -68,6 +144,14 @@ class LampiranForm(forms.ModelForm):
                 )
                 
         return file
+
+inlineformset_factory(
+    parent_model=Pelatihan,
+    model=InstrukturPelatihan,
+    form=InstrukturPelatihanForm,
+    extra=1,
+    can_delete=True,
+)
 
 LampiranFormSet = forms.inlineformset_factory(
     Pelatihan,

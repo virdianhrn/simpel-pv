@@ -110,19 +110,6 @@ class Pelatihan(models.Model):
     def __str__(self):
         return f"{self.judul} - {self.paket_ke}"
 
-
-def upload_to_dokumen(instance, filename):
-    """
-    Creates a more readable and unique filename.
-    Example: dokumen/pelatihan-uuid/daftar-hadir-peserta-uuid.pdf
-    """
-    id_pelatihan = instance.pelatihan.id
-    extension = os.path.splitext(filename)[1]
-    # Use the human-readable name for better debugging
-    doc_name_slug = slugify(instance.get_nama_display())
-    new_filename = f"{doc_name_slug}-{shortuuid.uuid()}{extension}"
-    return f'dokumen/{id_pelatihan}/{new_filename}'
-
 class PelatihanInstruktur(models.Model):
     """
     Intermediary model to link multiple instructors and their subjects to a single Pelatihan.
@@ -161,6 +148,18 @@ class Instruktur(models.Model):
     def __str__(self):
         return self.nama
 
+def upload_to_dokumen(instance, filename):
+    """
+    Creates a more readable and unique filename.
+    Example: dokumen/pelatihan-uuid/daftar-hadir-peserta-uuid.pdf
+    """
+    id_pelatihan = instance.pelatihan.id
+    extension = os.path.splitext(filename)[1]
+    # Use the human-readable name for better debugging
+    doc_name_slug = slugify(instance.get_nama_display())
+    new_filename = f"{doc_name_slug}-{shortuuid.uuid()}{extension}"
+    return f'dokumen/{id_pelatihan}/{new_filename}'
+    
 class PelatihanLampiran(models.Model):
     class DocumentName(models.TextChoices):
         DRH_PESERTA = '00', 'Daftar Riwayat Hidup Peserta'
