@@ -1,4 +1,4 @@
-from .models import Pelatihan, PelatihanLampiran
+from .models import Pelatihan, PelatihanLampiran, PelatihanInstruktur
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.html import format_html
@@ -73,19 +73,14 @@ class PelatihanForm(forms.ModelForm):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
-        admin_create_fields = [
-            'judul', 'kejuruan', 'penyelenggara', 'tahun_anggaran', 'paket_ke',
-            'tanggal_mulai_rencana', 'tanggal_selesai_rencana'
-        ]
-        
-        penyelenggara_readonly_fields = [
+        admin_only_fields = [
             'judul', 'kejuruan', 'penyelenggara', 'tahun_anggaran', 'paket_ke',
             'tanggal_mulai_rencana', 'tanggal_selesai_rencana'
         ]
 
         # Kasus 1: Admin membuat Pelatihan BARU (self.instance.pk adalah None)
         if self.user and self.user.is_admin and not self.instance.pk:
-            fields_to_show = admin_create_fields
+            fields_to_show = admin_only_fields
             all_fields = list(self.fields.keys())
             for field_name in all_fields:
                 if field_name not in fields_to_show:
@@ -93,7 +88,7 @@ class PelatihanForm(forms.ModelForm):
         
         # Kasus 2: Penyelenggara mengedit Pelatihan
         elif self.user and not self.user.is_admin and self.instance.pk:
-            for field_name in penyelenggara_readonly_fields:
+            for field_name in admin_only_fields:
                 if field_name in self.fields:
                     self.fields[field_name].disabled = True
         
@@ -101,20 +96,20 @@ class PelatihanForm(forms.ModelForm):
         # Tidak perlu melakukan apa-apa, formulir akan tampil lengkap dan bisa diedit
 
 
-class InstrukturPelatihanForm(forms.ModelForm):
+class PelatihanInstrukturForm(forms.ModelForm):
     """Form ini digunakan di dalam formset untuk menata field instruktur."""
     class Meta:
-        model = InstrukturPelatihan
+        model = PelatihanInstruktur
         fields = ['instruktur', 'materi']
         widgets = {
             'instruktur': forms.Select(attrs={'class': 'form-select'}),
             'materi': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
         }
 
-InstrukturPelatihanFormSet = inlineformset_factory(
+PelatihanInstrukturFormSet = forms.inlineformset_factory(
     parent_model=Pelatihan,
-    model=InstrukturPelatihan,
-    form=InstrukturPelatihanForm,
+    model=PelatihanInstruktur,
+    form=PelatihanInstrukturForm,
     extra=1,
     can_delete=True,
 )
@@ -145,17 +140,9 @@ class LampiranForm(forms.ModelForm):
                 
         return file
 
-inlineformset_factory(
-    parent_model=Pelatihan,
-    model=InstrukturPelatihan,
-    form=InstrukturPelatihanForm,
-    extra=1,
-    can_delete=True,
-)
-
 LampiranFormSet = forms.inlineformset_factory(
-    Pelatihan,
-    PelatihanLampiran,
+    parent_model=Pelatihan,
+    model=PelatihanLampiran,
     form=LampiranForm,
     extra=0,
     can_delete=False,
