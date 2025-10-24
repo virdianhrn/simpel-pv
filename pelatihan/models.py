@@ -123,30 +123,45 @@ def upload_to_dokumen(instance, filename):
     new_filename = f"{doc_name_slug}-{shortuuid.uuid()}{extension}"
     return f'dokumen/{id_pelatihan}/{new_filename}'
 
-
-class PengajarPelatihan(models.Model):
+class PelatihanInstruktur(models.Model):
     """
     Intermediary model to link multiple instructors and their subjects to a single Pelatihan.
     """
     id = ShortUUIDField(primary_key=True, length=22, max_length=22)
-    pelatihan = models.ForeignKey('Pelatihan', on_delete=models.CASCADE, related_name='pengajar_set')
-    pengajar = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL, # Don't delete the record if a user is deleted, just unlink
-        null=True,
+    pelatihan = models.ForeignKey('Pelatihan', on_delete=models.CASCADE, related_name='instruktur_set')
+    
+    instruktur = models.ForeignKey(
+        Instruktur,
+        on_delete=models.PROTECT, 
         related_name='materi_diajar'
     )
+    
     materi = models.TextField(verbose_name="Materi yang Diajarkan")
 
     class Meta:
-        verbose_name = "Pengajar Pelatihan"
-        verbose_name_plural = "Daftar Pengajar Pelatihan"
+        verbose_name = "Instruktur Pelatihan"
+        verbose_name_plural = "Daftar Instruktur Pelatihan"
+        unique_together = ('pelatihan', 'instruktur', 'materi')
 
     def __str__(self):
-        return f"{self.pengajar.get_full_name()} - {self.pelatihan.judul}"
+        return f"{self.instruktur.nama} - {self.pelatihan.judul}"
+
+class Instruktur(models.Model):
+    """
+    Menyimpan data master untuk Instruktur.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    nama = models.CharField(max_length=255, verbose_name="Nama Lengkap Instruktur")
+    
+    class Meta:
+        verbose_name = "Instruktur"
+        verbose_name_plural = "Daftar Instruktur"
+        ordering = ['nama']
+
+    def __str__(self):
+        return self.nama
 
 class PelatihanLampiran(models.Model):
-
     class DocumentName(models.TextChoices):
         DRH_PESERTA = '00', 'Daftar Riwayat Hidup Peserta'
         NOMINATIF_PESERTA = '01', 'Nominatif Peserta'
