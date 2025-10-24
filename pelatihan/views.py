@@ -92,7 +92,7 @@ def add(request):
     context = {
         'form': form
     }
-    return render(request, 'form_pelatihan.html', context)
+    return render(request, 'add_pelatihan.html', context)
 
 @admin_or_pelatihan_owner_required
 def edit(request, pelatihan_id):
