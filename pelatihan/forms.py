@@ -43,7 +43,7 @@ class PelatihanForm(forms.ModelForm):
             'durasi': 'Durasi (JP)',
         }
 
-class DokumenForm(forms.ModelForm):
+class LampiranForm(forms.ModelForm):
     class Meta:
         model = PelatihanLampiran
         fields = ['file_url']
@@ -69,15 +69,15 @@ class DokumenForm(forms.ModelForm):
                 
         return file
 
-DokumenFormSet = forms.inlineformset_factory(
+LampiranFormSet = forms.inlineformset_factory(
     Pelatihan,
     PelatihanLampiran,
-    form=DokumenForm,
+    form=LampiranForm,
     extra=0,
     can_delete=False,
 )
 
-class VerifikasiDokumenForm(forms.ModelForm):
+class VerifikasiLampiranForm(forms.ModelForm):
     status = forms.ModelChoiceField(
         queryset = verification_queryset,
         widget=forms.Select(attrs={'class': 'form-select'}),

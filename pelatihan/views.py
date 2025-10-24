@@ -13,7 +13,7 @@ from PyPDF2 import PdfMerger, PdfReader, PdfWriter
 
 # Local application imports
 from accounts.decorators import admin_required, admin_or_pelatihan_owner_required
-from .forms import DokumenFormSet, PelatihanForm, VerifikasiDokumenForm
+from .forms import LampiranFormSet, PelatihanForm, VerifikasiLampiranForm
 from .models import Pelatihan, PelatihanLampiran
 from konfigurasi.models import StatusDokumen
 
@@ -22,14 +22,14 @@ def verifikasi_dokumen(request, pelatihan_id, document_id):
     document = get_object_or_404(PelatihanLampiran, pk=document_id)
 
     if request.method == 'POST':
-        form = VerifikasiDokumenForm(request.POST, request.FILES, instance=document)
+        form = VerifikasiLampiranForm(request.POST, request.FILES, instance=document)
         if form.is_valid():
             form.save()
             return JsonResponse({'success': True, 'status': document.get_status_display()})
         else:
             return JsonResponse({'success': False, 'errors': form.errors})
 
-    form = VerifikasiDokumenForm(instance=document)
+    form = VerifikasiLampiranForm(instance=document)
     return render(request, 'form_verifikasi.html', {'form': form, 'document': document})
 
 class DetailView(LoginRequiredMixin, View):
@@ -42,7 +42,7 @@ class DetailView(LoginRequiredMixin, View):
         """
         Handles GET requests (when a user just views the page).
         """
-        formset = DokumenFormSet(instance=self.pelatihan)
+        formset = LampiranFormSet(instance=self.pelatihan)
 
         context = {
             'pelatihan': self.pelatihan,
@@ -55,7 +55,7 @@ class DetailView(LoginRequiredMixin, View):
         """
         Handles POST requests (when a user uploads or verifies a document).
         """
-        formset = DokumenFormSet(request.POST, request.FILES, instance=self.pelatihan)
+        formset = LampiranFormSet(request.POST, request.FILES, instance=self.pelatihan)
 
         if formset.is_valid():
             # Handle the data submission
