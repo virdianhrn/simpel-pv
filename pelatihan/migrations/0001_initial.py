@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='PelatihanDokumen',
+            name='PelatihanLampiran',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ('nama', models.CharField(choices=[('00', 'Daftar Riwayat Hidup Peserta'), ('01', 'Nominatif Peserta'), ('02', 'Daftar Hadir Peserta'), ('03', 'Daftar Hadir Instruktur'), ('04', 'Jadwal Pelatihan'), ('05', 'Daftar Jam Mengajar Instruktur'), ('06', 'Daftar Nilai Akhir'), ('07', 'Tanda Terima ATK Peserta + ID Card'), ('08', 'Tanda Terima Pakaian Kerja/Kaos Olahraga+Training'), ('09', 'Tanda Terima Sepatu Kerja'), ('10', 'Tanda Terima Modul'), ('11', 'Tanda Terima Bahan Pelatihan'), ('12', 'Tanda Terima Konsumsi'), ('13', 'Fotocopy Sertifikat Pelatihan'), ('14', 'Dokumentasi Kegiatan')], max_length=2, verbose_name='Jenis Dokumen')),

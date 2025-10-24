@@ -1,4 +1,4 @@
-from .models import Pelatihan, PelatihanDokumen
+from .models import Pelatihan, PelatihanLampiran
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.html import format_html
@@ -45,7 +45,7 @@ class PelatihanForm(forms.ModelForm):
 
 class DokumenForm(forms.ModelForm):
     class Meta:
-        model = PelatihanDokumen
+        model = PelatihanLampiran
         fields = ['file_url']
         widgets = {
             'file_url': forms.FileInput(attrs={
@@ -71,7 +71,7 @@ class DokumenForm(forms.ModelForm):
 
 DokumenFormSet = forms.inlineformset_factory(
     Pelatihan,
-    PelatihanDokumen,
+    PelatihanLampiran,
     form=DokumenForm,
     extra=0,
     can_delete=False,
@@ -89,7 +89,7 @@ class VerifikasiDokumenForm(forms.ModelForm):
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3})
     )
     class Meta:
-        model = PelatihanDokumen
+        model = PelatihanLampiran
         fields = ['status', 'notes']
 
     def __init__(self, *args, **kwargs):

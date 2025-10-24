@@ -14,12 +14,12 @@ from PyPDF2 import PdfMerger, PdfReader, PdfWriter
 # Local application imports
 from accounts.decorators import admin_required, admin_or_pelatihan_owner_required
 from .forms import DokumenFormSet, PelatihanForm, VerifikasiDokumenForm
-from .models import Pelatihan, PelatihanDokumen
+from .models import Pelatihan, PelatihanLampiran
 from konfigurasi.models import StatusDokumen
 
 @admin_required
 def verifikasi_dokumen(request, pelatihan_id, document_id):
-    document = get_object_or_404(PelatihanDokumen, pk=document_id)
+    document = get_object_or_404(PelatihanLampiran, pk=document_id)
 
     if request.method == 'POST':
         form = VerifikasiDokumenForm(request.POST, request.FILES, instance=document)
@@ -118,7 +118,7 @@ def skip_document(request, pelatihan_id, document_id):
     pelatihan = get_object_or_404(Pelatihan, pk=pelatihan_id)
 
     if request.method == 'POST':
-        document = get_object_or_404(PelatihanDokumen, pk=document_id)
+        document = get_object_or_404(PelatihanLampiran, pk=document_id)
         buffer = BytesIO()
         writer = PdfWriter()
 
@@ -155,7 +155,7 @@ def delete(request, pelatihan_id):
 def download_merged_docs(request, pelatihan_id):
     pelatihan = get_object_or_404(Pelatihan, pk=pelatihan_id)
     
-    documents_to_merge = PelatihanDokumen.objects.filter(
+    documents_to_merge = PelatihanLampiran.objects.filter(
         pelatihan=pelatihan
     )
 

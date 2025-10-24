@@ -145,7 +145,7 @@ class PengajarPelatihan(models.Model):
     def __str__(self):
         return f"{self.pengajar.get_full_name()} - {self.pelatihan.judul}"
 
-class PelatihanDokumen(models.Model):
+class PelatihanLampiran(models.Model):
 
     class DocumentName(models.TextChoices):
         DRH_PESERTA = '00', 'Daftar Riwayat Hidup Peserta'
