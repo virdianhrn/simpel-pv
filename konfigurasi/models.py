@@ -74,3 +74,9 @@ class StatusDokumen(models.Model):
 
     def __str__(self):
         return self.nama
+
+class Kejuruan(models.Model):
+    nama = models.CharField(max_length=255, unique=True)
+
+    def __str__(self):
+        return self.nama
