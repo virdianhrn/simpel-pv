@@ -1,5 +1,5 @@
-import os
-import uuid
+import os, shortuuid
+from shortuuid.django_fields import ShortUUIDField
 
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -10,13 +10,88 @@ from konfigurasi.models import StatusDokumen
 
 User = get_user_model()
 class Pelatihan(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    judul = models.CharField(max_length=255, verbose_name="Judul Pelatihan")
-    pic = models.ForeignKey(User, verbose_name="PIC Pelatihan",
-                            on_delete=models.CASCADE, related_name='pelatihan')
-    tanggal_mulai = models.DateField(verbose_name="Tanggal Mulai Pelatihan")
-    tanggal_selesai = models.DateField(verbose_name="Tanggal Selesai Pelatihan")
-    durasi = models.PositiveSmallIntegerField(verbose_name="Durasi Pelatihan") # Dalam JP
+    class JenisPelatihan(models.TextChoices):
+        BOARDING = 'BOARDING', 'Boarding'
+        NON_BOARDING = 'NON_BOARDING', 'Non-Boarding'
+
+    class MetodePelatihan(models.TextChoices):
+        INSTITUTIONAL = 'INSTITUTIONAL', 'Institutional'
+        MTU = 'MTU', 'MTU'
+   
+
+    id = ShortUUIDField(primary_key=True, length=22, max_length=22)
+    judul = models.CharField(max_length=255, verbose_name="Program Pelatihan")
+    kejuruan = models.ForeignKey(Kejuruan, on_delete=models.PROTECT, related_name='pelatihan')
+    jenis_pelatihan = models.CharField(max_length=10, choices=JenisPelatihan.choices, verbose_name="Jenis Pelatihan")
+    penyelenggara = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="Penyelenggara (PIC)",
+        on_delete=models.PROTECT,
+        related_name='pelatihan'
+    )
+
+    # --- Detail Pelaksanaan ---
+    metode = models.CharField(max_length=10, choices=MetodePelatihan.choices, verbose_name="Metode Pelatihan")
+    tempat_pelaksanaan = models.CharField(max_length=255)
+    tanggal_mulai_rencana = models.DateField(verbose_name="Tanggal Mulai (Rencana)")
+    tanggal_selesai_rencana = models.DateField(verbose_name="Tanggal Selesai (Rencana)")
+    tanggal_mulai_aktual = models.DateField(verbose_name="Tanggal Mulai (Aktual)")
+    tanggal_selesai_aktual = models.DateField(verbose_name="Tanggal Selesai (Aktual)")
+    durasi_jp = models.PositiveSmallIntegerField(verbose_name="Durasi Pelatihan (JP)")
+    jam_per_hari = models.PositiveSmallIntegerField(verbose_name="Jam Pelajaran per Hari", default=8)
+    waktu_pelatihan = models.CharField(max_length=100, verbose_name="Waktu Pelaksanaan", help_text="Contoh: 08:00 s.d. 16:00", blank=True)
+
+    # --- Administrasi ---
+    tahun_anggaran = models.ForeignKey(TahunAnggaran, on_delete=models.PROTECT, related_name='pelatihan')
+    paket_ke = models.PositiveSmallIntegerField(verbose_name="Paket Ke-")
+    no_sk = models.CharField(max_length=255, verbose_name="No. SK Penyelenggaraan", blank=True)
+    tanggal_sk = models.DateField(verbose_name="Tgl. SK Penyelenggaraan", null=True, blank=True)
+    tentang_sk = models.TextField(verbose_name="Tentang SK", blank=True)
+    
+    # --- Penandatangan Laporan ---
+    jabatan_penandatangan = models.CharField(max_length=255, verbose_name="Nama Jabatan Ttd. Lap", blank=True)
+    nama_penandatangan = models.CharField(max_length=255, verbose_name="Nama Pejabat Ttd. Lap", blank=True)
+    nip_penandatangan = models.CharField(max_length=50, verbose_name="NIP Pejabat Ttd. Lap", blank=True)
+    tanggal_penandatangan = models.DateField(verbose_name="Tgl. Ttd Lap", null=True, blank=True)
+
+    # --- Statistik Peserta (diisi setelah pelatihan selesai) ---
+    jumlah_peserta_laki = models.PositiveSmallIntegerField(default=0, verbose_name="Jumlah Peserta Laki-Laki")
+    jumlah_peserta_perempuan = models.PositiveSmallIntegerField(default=0, verbose_name="Jumlah Peserta Perempuan")
+    jumlah_lulus = models.PositiveSmallIntegerField(default=0, verbose_name="Jumlah Lulus")
+    jumlah_belum_lulus = models.PositiveSmallIntegerField(default=0, verbose_name="Jumlah Belum Lulus")
+    alasan_belum_lulus = models.TextField(blank=True)
+    rata_rata_pendidikan = models.CharField(
+        max_length=100,
+        verbose_name="Rata-Rata Pendidikan Peserta",
+        help_text="Contoh: SMA",
+        blank=True
+    )
+    rata_rata_usia = models.FloatField(
+        verbose_name="Rata-Rata Usia Peserta",
+        help_text="Contoh: 25.3",
+        null=True,
+        blank=True
+    )
+    rata_rata_domisili = models.CharField(
+        max_length=255,
+        verbose_name="Rata-Rata Domisili Peserta",
+        help_text="Contoh: Bekasi",
+        blank=True
+    )
+    # --- Keterangan Tambahan ---
+    keterangan_lanjutan = models.TextField(verbose_name="Ket. Lanjutan", blank=True)
+
+    @property
+    def rata_rata_gender_display(self):
+        laki = self.jumlah_peserta_laki
+        perempuan = self.jumlah_peserta_perempuan
+
+        if laki > perempuan:
+            return "Laki-laki"
+        elif perempuan > laki:
+            return "Perempuan"
+        elif laki == perempuan:
+            return "Seimbang"
 
     def clean(self):
         super().clean()
@@ -33,7 +108,7 @@ class Pelatihan(models.Model):
         return int((uploaded / total) * 100)
 
     def __str__(self):
-        return f"{self.judul} - {self.pic}"
+        return f"{self.judul} - {self.paket_ke}"
 
 
 def upload_to_dokumen(instance, filename):
@@ -45,12 +120,32 @@ def upload_to_dokumen(instance, filename):
     extension = os.path.splitext(filename)[1]
     # Use the human-readable name for better debugging
     doc_name_slug = slugify(instance.get_nama_display())
-    new_filename = f"{doc_name_slug}-{uuid.uuid4()}{extension}"
+    new_filename = f"{doc_name_slug}-{shortuuid.uuid()}{extension}"
     return f'dokumen/{id_pelatihan}/{new_filename}'
 
 
+class PengajarPelatihan(models.Model):
+    """
+    Intermediary model to link multiple instructors and their subjects to a single Pelatihan.
+    """
+    id = ShortUUIDField(primary_key=True, length=22, max_length=22)
+    pelatihan = models.ForeignKey('Pelatihan', on_delete=models.CASCADE, related_name='pengajar_set')
+    pengajar = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL, # Don't delete the record if a user is deleted, just unlink
+        null=True,
+        related_name='materi_diajar'
+    )
+    materi = models.TextField(verbose_name="Materi yang Diajarkan")
+
+    class Meta:
+        verbose_name = "Pengajar Pelatihan"
+        verbose_name_plural = "Daftar Pengajar Pelatihan"
+
+    def __str__(self):
+        return f"{self.pengajar.get_full_name()} - {self.pelatihan.judul}"
+
 class PelatihanDokumen(models.Model):
-    # 1. ENCAPSULATED CHOICES USING TextChoices
 
     class DocumentName(models.TextChoices):
         DRH_PESERTA = '00', 'Daftar Riwayat Hidup Peserta'
@@ -69,7 +164,7 @@ class PelatihanDokumen(models.Model):
         FOTOCOPY_SERTIFIKAT = '13', 'Fotocopy Sertifikat Pelatihan'
         DOKUMENTASI = '14', 'Dokumentasi Kegiatan'
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = ShortUUIDField(primary_key=True, length=22, max_length=22)
     pelatihan = models.ForeignKey(Pelatihan, on_delete=models.CASCADE,
                                   related_name='dokumen')
 
