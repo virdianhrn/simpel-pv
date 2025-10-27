@@ -3,7 +3,7 @@
 from django.db import migrations
 
 KEJURUAN_DATA = [
-    {'id': 'TIK', 'nama': 'Teknologi Informasi dan Komunikasi'},
+    {'id': 'TIK', 'nama': 'TIK'},
     {'id': 'LAS', 'nama': 'Welding'},
     {'id': 'ELK', 'nama': 'Elektronika'},
     {'id': 'PAR', 'nama': 'Pariwisata'},
