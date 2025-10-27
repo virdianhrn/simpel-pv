@@ -38,8 +38,8 @@ class Pelatihan(models.Model):
     jenis_pelatihan = models.CharField(max_length=15, choices=JenisPelatihan.choices, verbose_name="Jenis Pelatihan", blank=True)
     metode = models.CharField(max_length=15, choices=MetodePelatihan.choices, verbose_name="Metode Pelatihan", blank=True)
     tempat_pelaksanaan = models.CharField(max_length=255, blank=True)
-    tanggal_mulai_aktual = models.DateField(verbose_name="Tanggal Mulai (Aktual)", null=True)
-    tanggal_selesai_aktual = models.DateField(verbose_name="Tanggal Selesai (Aktual)", null=True)
+    tanggal_mulai_aktual = models.DateField(verbose_name="Tanggal Mulai (Aktual)", null=True, blank=True)
+    tanggal_selesai_aktual = models.DateField(verbose_name="Tanggal Selesai (Aktual)", null=True, blank=True)
     durasi_jp = models.PositiveSmallIntegerField(verbose_name="Durasi Pelatihan (JP)", null=True, blank=True)
     jam_per_hari = models.PositiveSmallIntegerField(verbose_name="Jam Pelajaran per Hari", default=8)
     waktu_pelatihan = models.CharField(
@@ -50,15 +50,15 @@ class Pelatihan(models.Model):
     )
 
     # --- Administrasi ---
-    no_sk = models.CharField(max_length=255, verbose_name="No. SK Penyelenggaraan", blank=True)
-    tanggal_sk = models.DateField(verbose_name="Tgl. SK Penyelenggaraan", null=True, blank=True)
+    no_sk = models.CharField(max_length=255, verbose_name="Nomor SK Penyelenggaraan", blank=True)
+    tanggal_sk = models.DateField(verbose_name="Tanggal SK Penyelenggaraan", null=True, blank=True)
     tentang_sk = models.TextField(verbose_name="Tentang SK", blank=True)
     
     # --- Penandatangan Laporan ---
-    jabatan_penandatangan = models.CharField(max_length=255, verbose_name="Nama Jabatan Ttd. Lap", blank=True)
-    nama_penandatangan = models.CharField(max_length=255, verbose_name="Nama Pejabat Ttd. Lap", blank=True)
-    nip_penandatangan = models.CharField(max_length=50, verbose_name="NIP Pejabat Ttd. Lap", blank=True)
-    tanggal_penandatangan = models.DateField(verbose_name="Tgl. Ttd Lap", null=True, blank=True)
+    jabatan_penandatangan = models.CharField(max_length=255, verbose_name="Nama Jabatan Ttd. Laporan", blank=True)
+    nama_penandatangan = models.CharField(max_length=255, verbose_name="Nama Pejabat Ttd. Laporan", blank=True)
+    nip_penandatangan = models.CharField(max_length=50, verbose_name="NIP Pejabat Ttd. Laporan", blank=True)
+    tanggal_penandatangan = models.DateField(verbose_name="Tanggal Ttd Laporan", null=True, blank=True)
 
     # --- Statistik Peserta (diisi setelah pelatihan selesai) ---
     jumlah_peserta_laki = models.PositiveSmallIntegerField(verbose_name="Jumlah Peserta Laki-Laki", null=True, blank=True)
