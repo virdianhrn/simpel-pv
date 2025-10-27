@@ -68,7 +68,7 @@ def admin_or_pelatihan_owner_required(view_func):
 
         # Grant access if the user is the owner (penyelenggara) of the object
         # Assumes the Pelatihan model has a 'penyelenggara' field linked to the User
-        if pelatihan.pic == request.user:
+        if pelatihan.penyelenggara == request.user:
             return view_func(request, pelatihan_id, *args, **kwargs)
 
         # If neither, deny access

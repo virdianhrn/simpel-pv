@@ -18,7 +18,7 @@
                 <div><strong>Judul:</strong> {{ pelatihan.judul }}</div>
                 {# --- Conditional Block for Admin --- #}
                 {% if user.is_admin %}
-                <div><strong>PIC:</strong> {{ pelatihan.pic }}</div>
+                <div><strong>PIC:</strong> {{ pelatihan.penyelenggara }}</div>
                 {% endif %}
                 <div><strong>Durasi:</strong> {{ pelatihan.durasi }} JP</div>
                 <div><strong>Tanggal Mulai:</strong> {{ pelatihan.tanggal_mulai|date:"d M Y" }}</div>
