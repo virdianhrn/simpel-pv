@@ -38,6 +38,19 @@ class TahunAnggaran(models.Model):
     def __str__(self):
         return str(self.tahun)
 
+    @classmethod
+    def get_aktif(cls):
+        """
+        Mengambil instance TahunAnggaran yang sedang aktif.
+        Idealnya hanya ada satu. Mengembalikan None jika tidak ada.
+        """
+        try:
+            # Coba ambil satu-satunya objek yang statusnya AKTIF
+            return cls.objects.get(status=cls.StatusChoices.AKTIF)
+        except cls.DoesNotExist:
+            # Jika tidak ada yang aktif, kembalikan None
+            return None
+
 class Role(models.Model):
     ADMIN = 'AD'
     PENYELENGGARA = 'PL'

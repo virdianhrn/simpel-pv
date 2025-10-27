@@ -13,8 +13,14 @@
 <div class="page-header pt-7 pb-5 bg-white-blue">
     <div class="container">
         <div class="d-flex justify-content-between align-items-center">
-            <h1 class="mb-0">Manajemen Pelatihan</h1>
-            {% if user.is_admin %}
+            <div> <h1 class="mb-0">Manajemen Pelatihan</h1>
+                {% if tahun_aktif %}
+                    <p class="text-muted mb-0">Menampilkan data untuk Tahun Anggaran {{ tahun_aktif.tahun }}</p>
+                {% endif %}
+            </div>
+            
+            {# Tombol Tambah hanya muncul jika user admin DAN ada tahun aktif #}
+            {% if user.is_admin and tahun_aktif %} 
                 <a href="{% url 'pelatihan:add' %}" class="btn bg-brand btn-success">
                     <i class="fa fa-plus me-2"></i> Tambah Pelatihan Baru
                 </a>
