@@ -8,12 +8,13 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.files.base import ContentFile
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views import View
 from PyPDF2 import PdfMerger, PdfReader, PdfWriter
 
 # Local application imports
 from accounts.decorators import admin_required, admin_or_pelatihan_owner_required
-from .forms import LampiranFormSet, PelatihanForm, VerifikasiLampiranForm
+from .forms import LampiranFormSet, PelatihanForm, VerifikasiLampiranForm, InstrukturFormSet
 from .models import Pelatihan, PelatihanLampiran
 from konfigurasi.models import StatusDokumen
 
@@ -98,6 +99,8 @@ def add(request):
 def edit(request, pelatihan_id):
     pelatihan = get_object_or_404(Pelatihan, id=pelatihan_id)
 
+    referer_url = request.META.get('HTTP_REFERER', reverse('main:dashboard'))
+
     if request.method == 'POST':
         form = PelatihanForm(request.POST, instance=pelatihan, user=request.user)
         if form.is_valid():
@@ -106,10 +109,13 @@ def edit(request, pelatihan_id):
             return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)
     else:
         form = PelatihanForm(instance=pelatihan, user=request.user)
+        formset = InstrukturFormSet(instance=pelatihan)
 
     context = {
         'form': form,
-        'pelatihan': pelatihan
+        'instruktur_formset': formset,
+        'pelatihan': pelatihan,
+        'previous_url': referer_url
     }
     return render(request, 'form_pelatihan.html', context)
 

@@ -105,7 +105,7 @@ class PelatihanInstrukturForm(forms.ModelForm):
             'materi': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
         }
 
-PelatihanInstrukturFormSet = forms.inlineformset_factory(
+InstrukturFormSet = forms.inlineformset_factory(
     parent_model=Pelatihan,
     model=PelatihanInstruktur,
     form=PelatihanInstrukturForm,
