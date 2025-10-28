@@ -85,7 +85,7 @@ class Pelatihan(models.Model):
         blank=True
     )
     # --- Keterangan Tambahan ---
-    keterangan_lanjutan = models.TextField(verbose_name="Ket. Lanjutan", blank=True)
+    keterangan_lanjutan = models.TextField(verbose_name="Keterangan Lanjutan", blank=True)
 
     @property
     def rata_rata_gender_display(self):
