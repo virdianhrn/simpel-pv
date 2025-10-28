@@ -41,7 +41,7 @@ class Pelatihan(models.Model):
     tanggal_mulai_aktual = models.DateField(verbose_name="Tanggal Mulai (Aktual)", null=True, blank=True)
     tanggal_selesai_aktual = models.DateField(verbose_name="Tanggal Selesai (Aktual)", null=True, blank=True)
     durasi_jp = models.PositiveSmallIntegerField(verbose_name="Durasi Pelatihan (JP)", null=True, blank=True)
-    jam_per_hari = models.PositiveSmallIntegerField(verbose_name="Jam Pelajaran per Hari", default=8)
+    jam_per_hari = models.PositiveSmallIntegerField(verbose_name="Jam Pelajaran per Hari", null=True, blank=True)
     waktu_pelatihan = models.CharField(
         max_length=100, 
         verbose_name="Waktu Pelaksanaan", 
@@ -105,13 +105,58 @@ class Pelatihan(models.Model):
     #         raise ValidationError("Tanggal selesai harus setelah tanggal mulai")
 
     def persentase_progress(self):
-        total = self.dokumen.count()
-        if total == 0:
-            return 0
+        dokumen_queryset = self.dokumen.all() # Ambil queryset sekali saja
+        total_dokumen = dokumen_queryset.count()
+        dokumen_terverifikasi = dokumen_queryset.filter(status_id=StatusDokumen.TERVERIFIKASI).count()
+
+        # --- 2. Tentukan Field Laporan dan Hitung Progressnya ---
+        # Daftar nama field laporan yang akan dicek
+        laporan_fields_to_check = [
+            'jenis_pelatihan', 'metode', 'tempat_pelaksanaan', 
+            'tanggal_mulai_aktual', 'tanggal_selesai_aktual', 'durasi_jp',
+            'jam_per_hari', 'waktu_pelatihan', 
+            'no_sk', 'tanggal_sk', 'tentang_sk', 'jabatan_penandatangan',
+            'nama_penandatangan', 'nip_penandatangan', 'tanggal_penandatangan',
+            'jumlah_peserta_laki', 'jumlah_peserta_perempuan', 'jumlah_lulus',
+            'jumlah_belum_lulus', 'alasan_belum_lulus', 'rata_rata_pendidikan',
+            'rata_rata_usia', 'rata_rata_domisili'
+        ]
+        total_laporan_fields = len(laporan_fields_to_check)
         
-        # Use the new TextChoices class for clarity
-        uploaded = self.dokumen.filter(status=StatusDokumen.TERVERIFIKASI).count()
-        return int((uploaded / total) * 100)
+        laporan_fields_terisi = 0
+        for field_name in laporan_fields_to_check:
+            # getattr(self, field_name, None) mengambil nilai field berdasarkan namanya
+            # Cek apakah field tersebut memiliki nilai (tidak None dan tidak string kosong)
+            value = getattr(self, field_name, None)
+            if value is not None and value != '':
+                laporan_fields_terisi += 1
+
+        total_instruktur_requirement = 1
+        # Cek apakah ada minimal satu instruktur terkait
+        # self.instruktur_set merujuk pada related_name di InstrukturPelatihan
+        instruktur_terisi = 1 if self.instruktur_set.exists() else 0
+
+        # --- 3. Cek Keberadaan Instruktur ---
+        # Menambah 1 item ke total requirement (minimal 1 instruktur)
+        total_instruktur_requirement = 1
+        # Cek apakah ada minimal satu instruktur terkait
+        # self.instruktur_set merujuk pada related_name di InstrukturPelatihan
+        instruktur_terisi = 1 if self.instruktur_set.exists() else 0
+
+        # --- 4. Hitung Total Keseluruhan ---
+        total_items = total_dokumen + total_laporan_fields + total_instruktur_requirement
+
+        # Hindari pembagian dengan nol
+        if total_items == 0:
+            return 0
+
+        total_selesai = dokumen_terverifikasi + laporan_fields_terisi + instruktur_terisi
+
+        # --- 5. Hitung Persentase ---
+        percentage = (total_selesai / total_items) * 100
+
+        # Kembalikan sebagai integer
+        return int(percentage)
 
     def __str__(self):
         return f"{self.judul} - {self.paket_ke}"
@@ -122,6 +167,12 @@ class Instruktur(models.Model):
     """
     id = ShortUUIDField(primary_key=True, length=22, max_length=22)
     nama = models.CharField(max_length=255, verbose_name="Nama Lengkap Instruktur")
+    kejuruan = models.ForeignKey(
+        Kejuruan, 
+        on_delete=models.PROTECT, # Mencegah Kejuruan dihapus jika masih ada Instruktur terkait
+        related_name='instruktur_set', # Memungkinkan akses dari Kejuruan ke Instruktur (opsional)
+        verbose_name="Kejuruan Utama"
+    )
     
     class Meta:
         verbose_name = "Instruktur"

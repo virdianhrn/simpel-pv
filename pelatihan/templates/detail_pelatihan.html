@@ -14,8 +14,8 @@
 <div class="container sticky-top">
     <div class="card">
         <div class="card-body">
-            <div class="d-flex justify-content-center flex-wrap gap-4 mb-3 text-lg">
-                <div>
+            <div class="d-flex justify-content-center flex-wrap gap-4 mb-3">
+                <div class="h4">
                     <strong>Program:</strong> 
                     {{ pelatihan.judul }}
                     {% if pelatihan.paket_ke > 1 %}
@@ -135,13 +135,13 @@
                                 </td>
                                 <td class="text-center text-sm font-weight-bold">
                                     {% if form.instance.is_perlu_revisi %}
-                                        <span class="badge rounded-pill bg-danger">{{ form.instance.get_status_display }}</span>
+                                        <span class="badge rounded-pill bg-danger">{{ form.instance.status }}</span>
                                     {% elif form.instance.is_terverifikasi %}
-                                        <span class="badge rounded-pill bg-success">{{ form.instance.get_status_display }}</span>
+                                        <span class="badge rounded-pill bg-success">{{ form.instance.status }}</span>
                                     {% elif form.instance.is_dalam_proses_verifikasi %}
-                                        <span class="badge rounded-pill bg-info">{{ form.instance.get_status_display }}</span>
+                                        <span class="badge rounded-pill bg-info">{{ form.instance.status }}</span>
                                     {% else %}
-                                        <span class="badge rounded-pill bg-secondary">{{ form.instance.get_status_display }}</span>
+                                        <span class="badge rounded-pill bg-secondary">{{ form.instance.status }}</span>
                                     {% endif %}
                                 </td>
                                 <td class="px-sm-4 px-3 text-center text-sm font-weight-bold" style="white-space:normal">
