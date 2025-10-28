@@ -103,17 +103,19 @@ def edit(request, pelatihan_id):
 
     if request.method == 'POST':
         form = PelatihanForm(request.POST, instance=pelatihan, user=request.user)
-        if form.is_valid():
+        instruktur_formset = InstrukturFormSet(request.POST, instance=pelatihan)
+        if form.is_valid() and instruktur_formset.is_valid():
             form.save()
+            instruktur_formset.save()
             messages.success(request, f"Pelatihan '{pelatihan.judul}' berhasil diperbarui.")
             return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)
     else:
         form = PelatihanForm(instance=pelatihan, user=request.user)
-        formset = InstrukturFormSet(instance=pelatihan)
+        instruktur_formset = InstrukturFormSet(instance=pelatihan)
 
     context = {
         'form': form,
-        'instruktur_formset': formset,
+        'instruktur_formset': instruktur_formset,
         'pelatihan': pelatihan,
         'previous_url': referer_url
     }

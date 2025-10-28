@@ -1,4 +1,4 @@
-from .models import Pelatihan, PelatihanLampiran, PelatihanInstruktur
+from .models import Pelatihan, Instruktur, PelatihanLampiran, PelatihanInstruktur
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.html import format_html
@@ -97,19 +97,24 @@ class PelatihanForm(forms.ModelForm):
 
 class PelatihanInstrukturForm(forms.ModelForm):
     """Form ini digunakan di dalam formset untuk menata field instruktur."""
+    instruktur = forms.ModelChoiceField(
+        queryset=Instruktur.objects.all().order_by('nama'),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label="Nama Instruktur"
+    )
+
     class Meta:
         model = PelatihanInstruktur
         fields = ['instruktur', 'materi']
         widgets = {
-            'instruktur': forms.Select(attrs={'class': 'form-select'}),
-            'materi': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'materi': forms.Textarea(attrs={'class': 'form-control', 'rows': 1}),
         }
 
 InstrukturFormSet = forms.inlineformset_factory(
     parent_model=Pelatihan,
     model=PelatihanInstruktur,
     form=PelatihanInstrukturForm,
-    extra=1,
+    extra=0,
     can_delete=True,
 )
 
