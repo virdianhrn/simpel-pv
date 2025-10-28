@@ -3,7 +3,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.html import format_html
 from django.contrib.auth import get_user_model
-from konfigurasi.models import StatusDokumen, Role
+from konfigurasi.models import StatusDokumen, Role, Kejuruan
 
 User = get_user_model()
 verification_queryset = StatusDokumen.objects.filter(
@@ -94,11 +94,31 @@ class PelatihanForm(forms.ModelForm):
         # Kasus 3: Admin mengedit Pelatihan
         # Tidak perlu melakukan apa-apa, formulir akan tampil lengkap dan bisa diedit
 
+class BasePelatihanInstrukturFormSet(forms.BaseInlineFormSet):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Simpan instance Pelatihan induk untuk digunakan nanti
+        self.pelatihan_instance = self.instance 
+
+    def _construct_form(self, i, **kwargs):
+        """ Modifikasi form sebelum dikembalikan """
+        form = super()._construct_form(i, **kwargs)
+        
+        # Filter queryset instruktur berdasarkan kejuruan pelatihan induk
+        if self.pelatihan_instance and self.pelatihan_instance.kejuruan:
+            form.fields['instruktur'].queryset = Instruktur.objects.filter(
+                kejuruan=self.pelatihan_instance.kejuruan
+            ).order_by('nama')
+        else:
+            # Jika pelatihan belum punya kejuruan, tampilkan queryset kosong
+            form.fields['instruktur'].queryset = Instruktur.objects.none()
+            
+        return form
 
 class PelatihanInstrukturForm(forms.ModelForm):
-    """Form ini digunakan di dalam formset untuk menata field instruktur."""
     instruktur = forms.ModelChoiceField(
-        queryset=Instruktur.objects.all().order_by('nama'),
+        # Set queryset awal ke none() karena akan diatur oleh formset
+        queryset=Instruktur.objects.none(), 
         widget=forms.Select(attrs={'class': 'form-select'}),
         label="Nama Instruktur"
     )
@@ -114,7 +134,8 @@ InstrukturFormSet = forms.inlineformset_factory(
     parent_model=Pelatihan,
     model=PelatihanInstruktur,
     form=PelatihanInstrukturForm,
-    extra=0,
+    formset=BasePelatihanInstrukturFormSet, # <-- Gunakan kelas formset kustom
+    extra=1, # Diubah kembali ke 1 agar ada form kosong
     can_delete=True,
 )
 
