@@ -220,7 +220,7 @@ def upload_to_dokumen(instance, filename):
     return f'dokumen/{id_pelatihan}/{new_filename}'
 
 class PelatihanLampiran(models.Model):
-    class DocumentName(models.TextChoices):
+    class LampiranName(models.TextChoices):
         DRH_PESERTA = '00', 'Daftar Riwayat Hidup Peserta'
         NOMINATIF_PESERTA = '01', 'Nominatif Peserta'
         DAFTAR_HADIR_PESERTA = '02', 'Daftar Hadir Peserta'
@@ -243,7 +243,7 @@ class PelatihanLampiran(models.Model):
 
     nama = models.CharField(
         max_length=2,
-        choices=DocumentName.choices,
+        choices=LampiranName.choices,
         verbose_name="Jenis Dokumen",
     )
 
@@ -269,10 +269,11 @@ class PelatihanLampiran(models.Model):
 
     class Meta:
         unique_together = ('pelatihan', 'nama')
+        ordering = ['nama']
 
     @classmethod
     def get_all_document_codes(cls):
-        return cls.DocumentName.values
+        return cls.LampiranName.values
         
     @property
     def is_kosong(self):
