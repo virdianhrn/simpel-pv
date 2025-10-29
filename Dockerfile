@@ -22,8 +22,29 @@ RUN pip install --no-cache-dir -r requirements.txt
  
 # Stage 2: Production stage
 FROM python:3.13.5
- 
+
 RUN apt-get update && apt-get install -y gosu && rm -rf /var/lib/apt/lists/*
+
+#--- Instalasi LibreOffice & Fonts (DIPISAHKAN UNTUK DEBUG) ---
+
+RUN apt-get update
+
+RUN apt-get install -y --no-install-recommends debconf-utils
+
+RUN export DEBIAN_FRONTEND=noninteractive && \
+    echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
+
+RUN apt-get install -y --no-install-recommends \
+    libreoffice-writer \
+    libreoffice-calc \
+    libreoffice-impress \
+    fonts-liberation \
+    fonts-dejavu \
+    fonts-crosextra-carlito \
+    fonts-crosextra-caladea \
+    unoconv \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# --- Akhir Instalasi LibreOffice & Fonts ---
 
 RUN useradd -m -r appuser && \
    mkdir /app && \
