@@ -194,11 +194,16 @@ def download_merged_docs(request, pelatihan_id):
 def _generate_report_docx(pelatihan: Pelatihan) -> BytesIO | None:
     """Mengisi template DOCX dengan data pelatihan dan mengembalikan buffer BytesIO."""
     
-    # Siapkan context (sama seperti sebelumnya)
-    # instruktur_list_for_tpl = [{'nama': item.instruktur.nama, 'materi': item.materi} 
-    #                            for item in pelatihan.instruktur_set.select_related('instruktur').all()]
+    instrukturs = pelatihan.instruktur_set.select_related('instruktur').all()
+    instruktur_materi_parts = []
+    for item in instrukturs:
+        nama_instruktur = item.instruktur.nama if item.instruktur else "Nama Tidak Tersedia"
+        materi_ajar = item.materi if item.materi else "Materi Tidak Spesifik"
+        
+        part = f"{nama_instruktur} dengan materi ajar {materi_ajar}"
+        instruktur_materi_parts.append(part)
 
-    instruktur_list_for_tpl = "Instruktur!"
+    instruktur_materi_string = "; ".join(instruktur_materi_parts)
 
     context = {
         'judul_lengkap': f"{pelatihan.judul} {pelatihan.paket_ke}",
@@ -215,7 +220,7 @@ def _generate_report_docx(pelatihan: Pelatihan) -> BytesIO | None:
         'rata_rata_gender': pelatihan.rata_rata_gender_display or '-', 'rata_rata_domisili': pelatihan.rata_rata_domisili or '-',
         'tanggal_ttd': pelatihan.tanggal_penandatangan.strftime('%d %B %Y') if pelatihan.tanggal_penandatangan else '[Tanggal Belum Diisi]',
         'jabatan_ttd': pelatihan.jabatan_penandatangan or '[Jabatan Belum Diisi]', 'nama_ttd': pelatihan.nama_penandatangan or '[Nama Pejabat Belum Diisi]',
-        'nip_ttd': pelatihan.nip_penandatangan or '[NIP Belum Diisi]', 'list_instruktur': instruktur_list_for_tpl,'tanggal_laporan_dibuat': datetime.now().strftime('%d %B %Y'), 
+        'nip_ttd': pelatihan.nip_penandatangan or '[NIP Belum Diisi]', 'jumlah_instruktur': pelatihan.instruktur_set.count(), 'list_instruktur': instruktur_materi_string,'tanggal_laporan_dibuat': datetime.now().strftime('%d %B %Y'), 
         'blm_lulus': f"dan {pelatihan.jumlah_belum_lulus} orang peserta pelatihan yang dinyatakan Belum Lulus (BL). {pelatihan.keterangan_lanjutan}" if (pelatihan.jumlah_belum_lulus > 0) else ''
     }
 
