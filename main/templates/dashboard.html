@@ -16,6 +16,14 @@
             <div> <h1 class="mb-0">Manajemen Pelatihan</h1>
                 {% if tahun_aktif %}
                     <p class="text-muted mb-0">Menampilkan data untuk Tahun Anggaran {{ tahun_aktif.tahun }}</p>
+                {% else %}
+                    <p class="text-warning mb-0"> 
+                        <i class="fa fa-exclamation-triangle me-1"></i> Tidak ada Tahun Anggaran yang aktif. 
+                        {# Tampilkan link hanya jika pengguna adalah admin #}
+                        {% if user.is_admin %}
+                            Silakan atur di <a href="{% url 'konfigurasi:manage_tahun_anggaran' %}" class="link-primary text-decoration-underline fw-bold">halaman konfigurasi</a>.
+                        {% endif %}
+                    </p>
                 {% endif %}
             </div>
             

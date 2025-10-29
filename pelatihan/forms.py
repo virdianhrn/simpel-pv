@@ -134,8 +134,8 @@ InstrukturFormSet = forms.inlineformset_factory(
     parent_model=Pelatihan,
     model=PelatihanInstruktur,
     form=PelatihanInstrukturForm,
-    formset=BasePelatihanInstrukturFormSet, # <-- Gunakan kelas formset kustom
-    extra=1, # Diubah kembali ke 1 agar ada form kosong
+    formset=BasePelatihanInstrukturFormSet,
+    extra=1,
     can_delete=True,
 )
 
