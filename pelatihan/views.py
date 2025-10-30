@@ -205,27 +205,30 @@ def _generate_report_docx(pelatihan: Pelatihan) -> BytesIO | None:
 
     instruktur_materi_string = "; ".join(instruktur_materi_parts)
 
+    lower_first = lambda s: s[:1].lower() + s[1:] if s else ''
+    alasan_belum_lulus = f"Alasan peserta pelatihan tersebut dinyatakan Belum Lulus (BL) adalah dikarenakan {lower_first(pelatihan.alasan_belum_lulus)}"
+    blm_lulus_text = f" dan {pelatihan.jumlah_belum_lulus} orang peserta pelatihan yang dinyatakan Belum Lulus (BL). {alasan_belum_lulus}" if (pelatihan.jumlah_belum_lulus > 0) else ''
+
     context = {
         'judul_lengkap': f"{pelatihan.judul} {pelatihan.paket_ke}",
         'kejuruan': str(pelatihan.kejuruan), 'tempat_pelaksanaan': pelatihan.tempat_pelaksanaan, 'tahun_anggaran': str(pelatihan.tahun_anggaran),
         'jenis_pelatihan': pelatihan.get_jenis_pelatihan_display(), 'metode': pelatihan.get_metode_display(),
         'tanggal_mulai': (pelatihan.tanggal_mulai_aktual or pelatihan.tanggal_mulai_rencana).strftime('%d %B %Y') if (pelatihan.tanggal_mulai_aktual or pelatihan.tanggal_mulai_rencana) else '-',
         'tanggal_selesai': (pelatihan.tanggal_selesai_aktual or pelatihan.tanggal_selesai_rencana).strftime('%d %B %Y') if (pelatihan.tanggal_selesai_aktual or pelatihan.tanggal_selesai_rencana) else '-',
-        'durasi_jp': pelatihan.durasi_jp, 'durasi_hari': getattr(pelatihan, 'durasi_hari', '-'), 'jam_per_hari': pelatihan.jam_per_hari,
+        'durasi_jp': pelatihan.durasi_jp, 'durasi_hari': pelatihan.durasi_hari(), 'jam_per_hari': pelatihan.jam_per_hari,
         'waktu_pelatihan': pelatihan.waktu_pelatihan or '-', 'penyelenggara': str(pelatihan.penyelenggara),
         'no_sk': pelatihan.no_sk or '-', 'tanggal_sk': pelatihan.tanggal_sk.strftime('%d %B %Y') if pelatihan.tanggal_sk else '-', 'tentang_sk': pelatihan.tentang_sk or '-',
         'total_peserta': pelatihan.jumlah_peserta_laki + pelatihan.jumlah_peserta_perempuan, 'jml_laki': pelatihan.jumlah_peserta_laki, 'jml_perempuan': pelatihan.jumlah_peserta_perempuan,
-        'jml_lulus': pelatihan.jumlah_lulus, 'jml_belum_lulus': pelatihan.jumlah_belum_lulus, 'alasan_belum_lulus': pelatihan.alasan_belum_lulus or '-',
+        'jml_lulus': pelatihan.jumlah_lulus, 'jml_belum_lulus': pelatihan.jumlah_belum_lulus, 'blm_lulus': blm_lulus_text,
         'rata_rata_pendidikan': pelatihan.rata_rata_pendidikan or '-', 'rata_rata_usia': pelatihan.rata_rata_usia or '-',
         'rata_rata_gender': pelatihan.rata_rata_gender_display or '-', 'rata_rata_domisili': pelatihan.rata_rata_domisili or '-',
         'tanggal_ttd': pelatihan.tanggal_penandatangan.strftime('%d %B %Y') if pelatihan.tanggal_penandatangan else '[Tanggal Belum Diisi]',
         'jabatan_ttd': pelatihan.jabatan_penandatangan or '[Jabatan Belum Diisi]', 'nama_ttd': pelatihan.nama_penandatangan or '[Nama Pejabat Belum Diisi]',
         'nip_ttd': pelatihan.nip_penandatangan or '[NIP Belum Diisi]', 'jumlah_instruktur': pelatihan.instruktur_set.count(), 'list_instruktur': instruktur_materi_string,'tanggal_laporan_dibuat': datetime.now().strftime('%d %B %Y'), 
-        'blm_lulus': f"dan {pelatihan.jumlah_belum_lulus} orang peserta pelatihan yang dinyatakan Belum Lulus (BL). {pelatihan.keterangan_lanjutan}" if (pelatihan.jumlah_belum_lulus > 0) else ''
     }
 
     # Tentukan path template
-    template_relative_path = 'docs/laporan_template.docx' 
+    template_relative_path = 'docs/laporan-template.docx' 
     template_path = finders.find(template_relative_path)
     if not os.path.exists(template_path):
         print(f"Error: Template laporan DOCX tidak ditemukan di {template_path}")

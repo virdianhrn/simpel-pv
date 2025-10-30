@@ -99,6 +99,13 @@ class Pelatihan(models.Model):
         elif laki == perempuan:
             return "Seimbang"
 
+    @property
+    def durasi_hari(self):
+        durasi_jp = self.durasi_jp
+        jam_per_hari = self.jam_per_hari
+
+        return durasi_jp // jam_per_hari if jam_per_hari else 0
+
     # def clean(self):
     #     super().clean()
     #     if self.tanggal_selesai and self.tanggal_mulai and self.tanggal_selesai < self.tanggal_mulai:

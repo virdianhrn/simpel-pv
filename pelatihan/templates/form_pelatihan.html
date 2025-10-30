@@ -9,15 +9,54 @@
 {% endwith %}
 {% endblock navbar %}
 
-{% block content %}
-<div class="page-header pt-7 pb-5 bg-white-blue">
-    <div class="container">
-        <h1 class="mb-0">Edit Pelatihan</h1>
-        <p class="text-muted">Perbarui detail untuk {{ pelatihan.judul }}.</p>
+{% block page_header_content %}
+<div class="page-header pt-7 bg-white-blue"></div>
+<div class="container sticky-top">
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex justify-content-center flex-wrap gap-4 mb-3">
+                <div class="h4">
+                    <strong>Isi Laporan Program</strong> 
+                    {{ pelatihan.judul }}
+                    {% if pelatihan.paket_ke > 1 %}
+                        {{ pelatihan.paket_ke }}
+                    {% endif %}
+                </div>
+            </div>
+
+            <hr />
+
+            <div class="d-flex justify-content-evenly flex-wrap gap-4 mb-3 text-lg">
+                <div><strong>Kejuruan:</strong> {{ pelatihan.kejuruan }}</div>
+                {% if user.is_admin %}
+                <div><strong>PIC:</strong> {{ pelatihan.penyelenggara }}</div>
+                {% endif %}
+                <div><strong>Rencana tanggal Mulai:</strong> {{ pelatihan.tanggal_mulai_rencana|date:"d M Y" }}</div>
+                <div><strong>Rencana tanggal Selesai:</strong> {{ pelatihan.tanggal_selesai_rencana|date:"d M Y" }}</div>
+            </div>
+
+            <hr />
+
+            <h6 class="mt-4 mb-2">Progress Pengisian Dokumen: {{ pelatihan.persentase_progress }}%</h6>
+            <div class="progress" style="height: 15px;">
+                <div 
+                    class="progress-bar bg-success" 
+                    role="progressbar" 
+                    style="width: {{ pelatihan.persentase_progress }}%;" 
+                    aria-valuenow="{{ pelatihan.persentase_progress }}" 
+                    aria-valuemin="0" 
+                    aria-valuemax="100"
+                >
+                    {{ pelatihan.persentase_progress }}%
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+{% endblock page_header_content %}
 
-<div class="container mt-n5 pb-5">
+{% block content %}
+<div class="container mt-4 pb-5">
     <div class="row justify-content-center">
         <div class="col-lg-10"> <form method="POST">
                 {% csrf_token %}
