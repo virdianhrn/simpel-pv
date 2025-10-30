@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'pelatihan',
     'main',
     'authentication',
-    'konfigurasi'
+    'konfigurasi',
+    'evaluasi'
 ]
 
 MIDDLEWARE = [

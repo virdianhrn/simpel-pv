@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} Dashboard Evaluasi {% endblock title %}
+
+{% block navbar %}
+{% with variant='light' %}
+{{ block.super }}
+{% endwith %}
+{% endblock navbar %}
+
+{% block page_header_content %}
+<div class="page-header pt-7 pb-5 bg-white-blue">
+    <div class="container">
+        <h1 class="mb-0">Dasbor Evaluasi</h1>
+        {% if tahun_aktif %}
+            <p class="text-muted mb-0">Menampilkan data tahun anggaran {{ tahun_aktif.tahun }} (Jika relevan)</p>
+        {% else %}
+             <p class="text-warning mb-0">Tidak ada tahun anggaran aktif yang diatur.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock page_header_content %}
+
+{% block content %}
+<div class="container mt-2 pb-5">
+    <div class="row">
+        <div class="col-lg-7 mb-4">
+            <div class="card">
+                <div class="card-header"><h5 class="mb-0">Target vs Realisasi Paket (5 Tahun Terakhir)</h5></div>
+                <div class="card-body">
+                    {% if chart_target_realisasi_labels != '[]' %}
+                        <canvas id="chartTargetRealisasi" 
+                                data-labels="{{ chart_target_realisasi_labels|safe }}"
+                                data-target="{{ chart_target_realisasi_data_target|safe }}"
+                                data-realisasi="{{ chart_target_realisasi_data_realisasi|safe }}">
+                        </canvas>
+                    {% else %}
+                        <p class="text-muted text-center">Belum ada data target/realisasi.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5 mb-4">
+            <div class="card">
+                <div class="card-header"><h5 class="mb-0">Total Jam Pelajaran (5 Tahun Terakhir)</h5></div>
+                <div class="card-body">
+                    {% if chart_jp_labels != '[]' %}
+                        <canvas id="chartTotalJP"
+                                data-labels="{{ chart_jp_labels|safe }}"
+                                data-jp="{{ chart_jp_data|safe }}">
+                        </canvas>
+                    {% else %}
+                        <p class="text-muted text-center">Belum ada data Jam Pelajaran.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header"><h5 class="mb-0">Distribusi Paket per PIC (T.A. {{ tahun_aktif.tahun|default:'N/A' }})</h5></div>
+                <div class="card-body">
+                    {% if chart_pic_labels != '[]' %}
+                        <canvas id="chartPIC"
+                                data-labels="{{ chart_pic_labels|safe }}"
+                                data-paket="{{ chart_pic_data|safe }}">
+                        </canvas>
+                    {% else %}
+                        <p class="text-muted text-center">Belum ada data pelatihan untuk PIC di tahun ini.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header"><h5 class="mb-0">Distribusi Paket per Kejuruan (T.A. {{ tahun_aktif.tahun|default:'N/A' }})</h5></div>
+                <div class="card-body">
+                    {% if chart_kejuruan_labels != '[]' %}
+                        <canvas id="chartKejuruan"
+                                data-labels="{{ chart_kejuruan_labels|safe }}"
+                                data-paket="{{ chart_kejuruan_data|safe }}">
+                        </canvas>
+                    {% else %}
+                        <p class="text-muted text-center">Belum ada data pelatihan untuk kejuruan di tahun ini.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+<script src="{% static 'evaluasi/js/graph_evaluasi.js' %}"></script>
+{% endblock scripts %}
+
+{% endblock content %}
+

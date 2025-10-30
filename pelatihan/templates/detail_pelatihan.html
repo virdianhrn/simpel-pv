@@ -37,17 +37,17 @@
 
             <hr />
 
-            <h6 class="mt-4 mb-2">Progress Pengisian Dokumen: {{ pelatihan.persentase_progress }}%</h6>
+            <h6 class="mt-4 mb-2">Progress Pengisian Dokumen: {{ pelatihan.progress_laporan }}%</h6>
             <div class="progress" style="height: 15px;">
                 <div 
                     class="progress-bar bg-success" 
                     role="progressbar" 
-                    style="width: {{ pelatihan.persentase_progress }}%;" 
-                    aria-valuenow="{{ pelatihan.persentase_progress }}" 
+                    style="width: {{ pelatihan.progress_laporan }}%;" 
+                    aria-valuenow="{{ pelatihan.progress_laporan }}" 
                     aria-valuemin="0" 
                     aria-valuemax="100"
                 >
-                    {{ pelatihan.persentase_progress }}%
+                    {{ pelatihan.progress_laporan }}%
                 </div>
             </div>
         </div>
@@ -154,7 +154,7 @@
                 </div>
             </form>
             <div class="text-end pe-2">
-                {% if pelatihan.persentase_progress == 100 %}
+                {% if pelatihan.progress_laporan == 100 %}
                     <a href="{% url 'pelatihan:full_report' pelatihan.id %}" class="btn btn-sm btn-success mt-3 pb-2">
                         <i class="fa-solid fa-download"></i> Download Semua Dokumen
                     </a>

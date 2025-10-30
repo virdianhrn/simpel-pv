@@ -86,6 +86,12 @@ class Pelatihan(models.Model):
     )
     # --- Keterangan Tambahan ---
     keterangan_lanjutan = models.TextField(verbose_name="Keterangan Lanjutan", blank=True)
+    progress_laporan = models.PositiveIntegerField(
+        default=0, 
+        editable=False, 
+        db_index=True, # Tambahkan index untuk mempercepat filter
+        verbose_name="Progres Laporan (%)"
+    )
 
     @property
     def rata_rata_gender_display(self):
@@ -111,7 +117,26 @@ class Pelatihan(models.Model):
     #     if self.tanggal_selesai and self.tanggal_mulai and self.tanggal_selesai < self.tanggal_mulai:
     #         raise ValidationError("Tanggal selesai harus setelah tanggal mulai")
 
-    def persentase_progress(self):
+    def save(self, *args, **kwargs):
+        # Cek apakah 'save' ini HANYA untuk update progres, agar tidak rekursif
+        is_progress_update = 'update_fields' in kwargs and 'progress_laporan' in kwargs['update_fields'] and len(kwargs['update_fields']) == 1
+
+        super().save(*args, **kwargs) # Simpan data utama
+        
+        # Jika ini BUKAN save progres, panggil update progres
+        if not is_progress_update:
+            self.update_progress()
+
+    def update_progress(self):
+        """Menghitung progres baru dan menyimpannya ke database."""
+        new_progress = self.calculate_persentase_progress()
+        if self.progress_laporan != new_progress:
+            self.progress_laporan = new_progress
+            # Gunakan update_fields untuk hanya menyimpan field ini
+            # dan mencegah save() rekursif tanpa akhir
+            self.save(update_fields=['progress_laporan'])
+
+    def calculate_persentase_progress(self):
         dokumen_queryset = self.dokumen.all() # Ambil queryset sekali saja
         total_dokumen = dokumen_queryset.count()
         dokumen_terverifikasi = dokumen_queryset.filter(status_id=StatusDokumen.TERVERIFIKASI).count()
@@ -277,6 +302,19 @@ class PelatihanLampiran(models.Model):
     class Meta:
         unique_together = ('pelatihan', 'nama')
         ordering = ['nama']
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Panggil update_progress di Pelatihan induk
+        if self.pelatihan:
+            self.pelatihan.update_progress()
+
+    def delete(self, *args, **kwargs):
+        pelatihan = self.pelatihan
+        super().delete(*args, **kwargs)
+        # Panggil update_progress setelah dihapus
+        if pelatihan:
+            pelatihan.update_progress()
 
     @classmethod
     def get_all_document_codes(cls):
