@@ -189,7 +189,7 @@ def _generate_report_docx(pelatihan: Pelatihan) -> BytesIO | None:
         'jenis_pelatihan': pelatihan.get_jenis_pelatihan_display(), 'metode': pelatihan.get_metode_display(),
         'tanggal_mulai': (pelatihan.tanggal_mulai_aktual or pelatihan.tanggal_mulai_rencana).strftime('%d %B %Y') if (pelatihan.tanggal_mulai_aktual or pelatihan.tanggal_mulai_rencana) else '-',
         'tanggal_selesai': (pelatihan.tanggal_selesai_aktual or pelatihan.tanggal_selesai_rencana).strftime('%d %B %Y') if (pelatihan.tanggal_selesai_aktual or pelatihan.tanggal_selesai_rencana) else '-',
-        'durasi_jp': pelatihan.durasi_jp, 'durasi_hari': pelatihan.durasi_hari(), 'jam_per_hari': pelatihan.jam_per_hari,
+        'durasi_jp': pelatihan.durasi_jp, 'durasi_hari': pelatihan.durasi_hari, 'jam_per_hari': pelatihan.jam_per_hari,
         'waktu_pelatihan': pelatihan.waktu_pelatihan or '-', 'penyelenggara': str(pelatihan.penyelenggara),
         'no_sk': pelatihan.no_sk or '-', 'tanggal_sk': pelatihan.tanggal_sk.strftime('%d %B %Y') if pelatihan.tanggal_sk else '-', 'tentang_sk': pelatihan.tentang_sk or '-',
         'total_peserta': pelatihan.jumlah_peserta_laki + pelatihan.jumlah_peserta_perempuan, 'jml_laki': pelatihan.jumlah_peserta_laki, 'jml_perempuan': pelatihan.jumlah_peserta_perempuan,
