@@ -165,32 +165,6 @@ def delete(request, pelatihan_id):
     
     return redirect('main:dashboard')
 
-@admin_or_pelatihan_owner_required
-def download_merged_docs(request, pelatihan_id):
-    pelatihan = get_object_or_404(Pelatihan, pk=pelatihan_id)
-    
-    documents_to_merge = PelatihanLampiran.objects.filter(
-        pelatihan=pelatihan
-    )
-
-    pdf_merger = PdfMerger()
-    for document in documents_to_merge:
-        reader = PdfReader(document.file_url)
-        page = reader.pages[0]
-        if page.extract_text().strip(): # Check if the page is not empty
-            pdf_merger.append(reader)
-
-    output_buffer = BytesIO()
-    pdf_merger.write(output_buffer)
-    pdf_merger.close()
-
-    output_buffer.seek(0) # Rewind the buffer to the beginning
-    response = HttpResponse(output_buffer, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="Dokumen Pelatihan-{pelatihan.judul}.pdf"'
-    output_buffer.close()
-    
-    return response
-
 def _generate_report_docx(pelatihan: Pelatihan) -> BytesIO | None:
     """Mengisi template DOCX dengan data pelatihan dan mengembalikan buffer BytesIO."""
     

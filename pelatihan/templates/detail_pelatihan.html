@@ -155,7 +155,7 @@
             </form>
             <div class="text-end pe-2">
                 {% if pelatihan.persentase_progress == 100 %}
-                    <a href="{% url 'pelatihan:download_merged_docs' pelatihan.id %}" class="btn btn-sm btn-success mt-3 pb-2">
+                    <a href="{% url 'pelatihan:full_report' pelatihan.id %}" class="btn btn-sm btn-success mt-3 pb-2">
                         <i class="fa-solid fa-download"></i> Download Semua Dokumen
                     </a>
                 {% else %}
