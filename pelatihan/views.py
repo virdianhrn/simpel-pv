@@ -17,6 +17,11 @@ from django.urls import reverse
 from django.views import View
 from PyPDF2 import PdfMerger, PdfReader, PdfWriter
 from docxtpl import DocxTemplate
+from PyPDF2.errors import PdfReadError
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import cm
+from reportlab.lib.utils import simpleSplit
 
 # Local application imports
 from accounts.decorators import admin_required, admin_or_pelatihan_owner_required
@@ -165,122 +170,81 @@ def delete(request, pelatihan_id):
     
     return redirect('main:dashboard')
 
-def _generate_report_docx(pelatihan: Pelatihan) -> BytesIO | None:
-    """Mengisi template DOCX dengan data pelatihan dan mengembalikan buffer BytesIO."""
+# --- Fungsi Helper: Untuk mengecek PDF kosong ---
+def _is_pdf_blank(file_object) -> bool:
+    """Mengecek apakah file PDF (gambar atau teks) kosong atau tidak valid."""
+    if not file_object:
+        return True
     
-    instrukturs = pelatihan.instruktur_set.select_related('instruktur').all()
-    instruktur_materi_parts = []
-    for item in instrukturs:
-        nama_instruktur = item.instruktur.nama if item.instruktur else "Nama Tidak Tersedia"
-        materi_ajar = item.materi if item.materi else "Materi Tidak Spesifik"
-        
-        part = f"{nama_instruktur} dengan materi ajar {materi_ajar}"
-        instruktur_materi_parts.append(part)
-
-    instruktur_materi_string = "; ".join(instruktur_materi_parts)
-
-    lower_first = lambda s: s[:1].lower() + s[1:] if s else ''
-    alasan_belum_lulus = f"Alasan peserta pelatihan tersebut dinyatakan Belum Lulus (BL) adalah dikarenakan {lower_first(pelatihan.alasan_belum_lulus)}"
-    blm_lulus_text = f" dan {pelatihan.jumlah_belum_lulus} orang peserta pelatihan yang dinyatakan Belum Lulus (BL). {alasan_belum_lulus}" if (pelatihan.jumlah_belum_lulus > 0) else ''
-
-    context = {
-        'judul_lengkap': f"{pelatihan.judul} {pelatihan.paket_ke}",
-        'kejuruan': str(pelatihan.kejuruan), 'tempat_pelaksanaan': pelatihan.tempat_pelaksanaan, 'tahun_anggaran': str(pelatihan.tahun_anggaran),
-        'jenis_pelatihan': pelatihan.get_jenis_pelatihan_display(), 'metode': pelatihan.get_metode_display(),
-        'tanggal_mulai': (pelatihan.tanggal_mulai_aktual or pelatihan.tanggal_mulai_rencana).strftime('%d %B %Y') if (pelatihan.tanggal_mulai_aktual or pelatihan.tanggal_mulai_rencana) else '-',
-        'tanggal_selesai': (pelatihan.tanggal_selesai_aktual or pelatihan.tanggal_selesai_rencana).strftime('%d %B %Y') if (pelatihan.tanggal_selesai_aktual or pelatihan.tanggal_selesai_rencana) else '-',
-        'durasi_jp': pelatihan.durasi_jp, 'durasi_hari': pelatihan.durasi_hari, 'jam_per_hari': pelatihan.jam_per_hari,
-        'waktu_pelatihan': pelatihan.waktu_pelatihan or '-', 'penyelenggara': str(pelatihan.penyelenggara),
-        'no_sk': pelatihan.no_sk or '-', 'tanggal_sk': pelatihan.tanggal_sk.strftime('%d %B %Y') if pelatihan.tanggal_sk else '-', 'tentang_sk': pelatihan.tentang_sk or '-',
-        'total_peserta': pelatihan.jumlah_peserta_laki + pelatihan.jumlah_peserta_perempuan, 'jml_laki': pelatihan.jumlah_peserta_laki, 'jml_perempuan': pelatihan.jumlah_peserta_perempuan,
-        'jml_lulus': pelatihan.jumlah_lulus, 'jml_belum_lulus': pelatihan.jumlah_belum_lulus, 'blm_lulus': blm_lulus_text,
-        'rata_rata_pendidikan': pelatihan.rata_rata_pendidikan or '-', 'rata_rata_usia': pelatihan.rata_rata_usia or '-',
-        'rata_rata_gender': pelatihan.rata_rata_gender_display or '-', 'rata_rata_domisili': pelatihan.rata_rata_domisili or '-',
-        'tanggal_ttd': pelatihan.tanggal_penandatangan.strftime('%d %B %Y') if pelatihan.tanggal_penandatangan else '[Tanggal Belum Diisi]',
-        'jabatan_ttd': pelatihan.jabatan_penandatangan or '[Jabatan Belum Diisi]', 'nama_ttd': pelatihan.nama_penandatangan or '[Nama Pejabat Belum Diisi]',
-        'nip_ttd': pelatihan.nip_penandatangan or '[NIP Belum Diisi]', 'jumlah_instruktur': pelatihan.instruktur_set.count(), 'list_instruktur': instruktur_materi_string,'tanggal_laporan_dibuat': datetime.now().strftime('%d %B %Y'), 
-    }
-
-    # Tentukan path template
-    template_relative_path = 'docs/laporan-template.docx' 
-    template_path = finders.find(template_relative_path)
-    if not os.path.exists(template_path):
-        print(f"Error: Template laporan DOCX tidak ditemukan di {template_path}")
-        return None # Kembalikan None jika template tidak ada
-
+    reader = None
     try:
-        doc = DocxTemplate(template_path)
-        doc.render(context)
+        # Pindah ke awal file
+        file_object.seek(0)
+        reader = PdfReader(file_object)
         
-        docx_buffer = BytesIO()
-        doc.save(docx_buffer)
-        docx_buffer.seek(0)
-        return docx_buffer
+        if not reader.pages:
+            return True # Tidak ada halaman
+        
+        page = reader.pages[0]
+        has_text = bool(page.extract_text().strip())
+        has_images = bool(page.images)
+        
+        # Anggap kosong jika tidak ada teks DAN tidak ada gambar
+        if not has_text and not has_images:
+            return True
+        
+        return False # Ada konten
+        
+    except PdfReadError:
+        print(f"Peringatan: PdfReadError, file mungkin rusak. Dianggap kosong.")
+        return True # Anggap rusak = kosong
     except Exception as e:
-        print(f"Error saat generate DOCX: {e}")
-        return None
+        print(f"Error saat mengecek PDF: {e}. Dianggap kosong.")
+        return True
+    finally:
+        # Penting: Kembalikan pointer file ke awal untuk penggunaan berikutnya
+        if file_object:
+            file_object.seek(0)
 
-# --- Fungsi 2: Merge Lampiran PDF ---
-def _merge_lampiran_pdfs(pelatihan: Pelatihan, request) -> BytesIO:
-    """Menggabungkan semua lampiran PDF yang valid (tidak kosong) untuk pelatihan."""
-    lampiran_merger = PdfMerger()
-    documents_to_merge = PelatihanLampiran.objects.filter(
-        pelatihan=pelatihan, 
-        file_url__isnull=False
-    ).exclude(file_url__exact='').order_by('nama') 
+# --- Fungsi Helper: Untuk membuat halaman pemisah PDF ---
+def _create_separator_page_pdf(nomor: int, nama: str) -> BytesIO:
+    """Membuat PDF satu halaman (A4) dengan teks di tengah."""
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4 # Mendapatkan ukuran A4 (dalam points)
+    margin_horizontal = 2.5 * cm
+    
+    # --- 1. Gambar Judul "LAMPIRAN X" ---
+    c.setFont("Helvetica-Bold", 24)
+    # Panggil drawCentredString langsung di canvas 'c'
+    c.drawCentredString(width / 2.0, height / 2.0 + (1*cm), f"LAMPIRAN {nomor}")
 
-    successful_merges = 0
+    # --- 2. Siapkan data untuk nama lampiran (multi-baris) ---
+    c.setFont("Helvetica-Bold", 18) # Atur font untuk simpleSplit
+    
+    maxWidth = width - (2 * margin_horizontal) # Lebar maks = Lebar Halaman - (2 x 2.5cm)
+    fontName = "Helvetica-Bold"
+    fontSize = 18
+    line_height = 22 # Perkiraan tinggi baris untuk font 18pt
+    
+    # Dapatkan daftar baris yang sudah di-wrap
+    lines = simpleSplit(nama, fontName, fontSize, maxWidth)
 
-    for document in documents_to_merge:
-        reader = None 
-        try:
-            if document.file_url:
-                pdf_file_object = document.file_url 
-                
-                try:
-                    reader = PdfReader(pdf_file_object)
-                except PdfReadError as e: # Tangani error jika file bukan PDF valid saat dibuka
-                    print(f"Error (PdfReadError) saat membuka lampiran '{document.get_nama_display()}': {e}")
-                    messages.warning(request, f"Gagal membaca lampiran PDF '{document.get_nama_display()}' karena format tidak valid atau rusak. Lampiran ini dilewati.")
-                    continue # Lanjut ke dokumen berikutnya jika gagal dibuka
+    # --- 3. Gambar nama lampiran baris per baris ---
+    # Mulai gambar 1cm di bawah judul "LAMPIRAN X"
+    current_y = height / 2.0 - (1*cm) 
+    
+    for line in lines:
+        # Panggil drawCentredString langsung di canvas 'c' untuk setiap baris
+        c.drawCentredString(width / 2.0, current_y, line)
+        # Turunkan posisi Y untuk baris berikutnya
+        current_y -= line_height 
 
-                # --- PENGECEKAN HALAMAN KOSONG ---
-                is_blank = False
-                if reader.pages:
-                    page = reader.pages[0] 
-                    has_text = bool(page.extract_text().strip())
-                    has_images = bool(page.images) # page.images adalah list, list kosong dievaluasi sbg False
-                    if not has_text and not has_images:
-                        is_blank = True
-                else:
-                    is_blank = True 
-
-                # Jika tidak kosong, tambahkan ke merger
-                if not is_blank:
-                    try:
-                        lampiran_merger.append(reader) # Gunakan objek reader
-                        successful_merges += 1
-                    except Exception as append_error: # Tangani error saat append (misal PDF rusak)
-                        messages.warning(request, f"Gagal menggabungkan lampiran '{document.get_nama_display()}': {append_error}. Lampiran ini dilewati.")
-
-        except Exception as e:
-            # Tangani error umum lainnya
-            print(f"Error umum saat memproses lampiran '{document.get_nama_display()}': {e}")
-            messages.warning(request, f"Gagal memproses lampiran '{document.get_nama_display()}': {e}. Lampiran ini dilewati.")
-
-    lampiran_pdf_buffer = BytesIO()
-    if successful_merges > 0: 
-        try:
-            lampiran_merger.write(lampiran_pdf_buffer)
-        except Exception as e:
-            print(f"Error saat menulis PDF lampiran gabungan: {e}")
-            messages.warning(request, f"Gagal menyelesaikan penggabungan lampiran PDF: {e}.")
-            lampiran_pdf_buffer = BytesIO() 
-             
-    lampiran_merger.close() 
-    lampiran_pdf_buffer.seek(0)
-
-    return lampiran_pdf_buffer
+    c.showPage() # Selesaikan halaman
+    c.save() # Simpan PDF ke buffer
+    
+    buffer.seek(0)
+    return buffer
 
 # --- Fungsi Helper: Konversi DOCX ke PDF ---
 def _convert_docx_to_pdf(docx_buffer: BytesIO) -> BytesIO | None:
@@ -377,36 +341,150 @@ def _combine_pdfs(pdf_buffer1: BytesIO, pdf_buffer2: BytesIO) -> BytesIO:
     final_pdf_buffer.seek(0)
     return final_pdf_buffer
 
-# --- View Utama (Koordinator) ---
+# --- Fungsi Helper: Generate DOCX (Diperbarui untuk menerima context) ---
+def _generate_report_docx(pelatihan: Pelatihan, context: dict) -> BytesIO | None:
+    """Mengisi template DOCX dengan data pelatihan dari context."""
+    
+    # Tentukan path template
+    template_relative_path = 'docs/laporan-template.docx' 
+    template_path = finders.find(template_relative_path) 
+
+    if not template_path:
+        print(f"Error: Template laporan DOCX '{template_relative_path}' tidak ditemukan.")
+        return None
+
+    try:
+        doc = DocxTemplate(template_path)
+        doc.render(context) # Render menggunakan context yang sudah disiapkan
+        
+        docx_buffer = BytesIO()
+        doc.save(docx_buffer)
+        docx_buffer.seek(0)
+        return docx_buffer
+    except Exception as e:
+        print(f"Error saat generate DOCX: {e}")
+        return None
+
 @admin_or_pelatihan_owner_required
 def generate_full_report_pdf_view(request, pelatihan_id):
     pelatihan = get_object_or_404(Pelatihan, pk=pelatihan_id)
     
-    docx_buffer = _generate_report_docx(pelatihan)
+    # --- TAHAP 1: PERSIAPAN & PENGECEKAN LAMPIRAN ---
+    print("Mulai Tahap 1: Pengecekan Lampiran")
+    daftar_lampiran_valid = [] # Untuk template DOCX (nomor, nama)
+    objek_lampiran_valid = [] # Untuk penggabungan PDF (objek file)
+    
+    lampiran_counter = 1
+    # Ambil semua lampiran yang terhubung, diurutkan berdasarkan kode nama ('00', '01', ...)
+    semua_lampiran = PelatihanLampiran.objects.filter(pelatihan=pelatihan).order_by('nama')
+
+    for document in semua_lampiran:
+        # Cek apakah file PDF kosong atau tidak
+        if not _is_pdf_blank(document.file_url):
+            nama_lampiran = document.get_nama_display()
+            # Tambahkan ke list untuk Daftar Isi di DOCX
+            daftar_lampiran_valid.append({
+                'nomor': lampiran_counter,
+                'nama': nama_lampiran
+            })
+            # Tambahkan objek file ke list untuk digabungkan nanti
+            objek_lampiran_valid.append(document)
+            lampiran_counter += 1
+        else:
+            print(f"Melewati lampiran kosong: {document.get_nama_display()}")
+
+    # --- TAHAP 2: GENERATE LAPORAN UTAMA (DOCX -> PDF) ---
+    print(f"Mulai Tahap 2: Generate Laporan Utama (dengan {len(daftar_lampiran_valid)} lampiran terdaftar)")
+    
+    instrukturs = pelatihan.instruktur_set.select_related('instruktur').all()
+    instruktur_materi_parts = []
+    for item in instrukturs:
+        nama_instruktur = item.instruktur.nama if item.instruktur else "Nama Tidak Tersedia"
+        materi_ajar = item.materi if item.materi else "Materi Tidak Spesifik"
+        
+        part = f"{nama_instruktur} dengan materi ajar {materi_ajar}"
+        instruktur_materi_parts.append(part)
+
+    instruktur_materi_string = "; ".join(instruktur_materi_parts)
+
+    lower_first = lambda s: s[:1].lower() + s[1:] if s else ''
+    alasan_belum_lulus = f"Alasan peserta pelatihan tersebut dinyatakan Belum Lulus (BL) adalah dikarenakan {lower_first(pelatihan.alasan_belum_lulus)}"
+    blm_lulus_text = f" dan {pelatihan.jumlah_belum_lulus} orang peserta pelatihan yang dinyatakan Belum Lulus (BL). {alasan_belum_lulus}" if (pelatihan.jumlah_belum_lulus > 0) else ''
+
+    context = {
+        'judul_lengkap': f"{pelatihan.judul} {pelatihan.paket_ke}",
+        'kejuruan': str(pelatihan.kejuruan), 'tempat_pelaksanaan': pelatihan.tempat_pelaksanaan, 'tahun_anggaran': str(pelatihan.tahun_anggaran),
+        'jenis_pelatihan': pelatihan.get_jenis_pelatihan_display(), 'metode': pelatihan.get_metode_display(),
+        'tanggal_mulai': (pelatihan.tanggal_mulai_aktual or pelatihan.tanggal_mulai_rencana).strftime('%d %B %Y') if (pelatihan.tanggal_mulai_aktual or pelatihan.tanggal_mulai_rencana) else '-',
+        'tanggal_selesai': (pelatihan.tanggal_selesai_aktual or pelatihan.tanggal_selesai_rencana).strftime('%d %B %Y') if (pelatihan.tanggal_selesai_aktual or pelatihan.tanggal_selesai_rencana) else '-',
+        'durasi_jp': pelatihan.durasi_jp, 'durasi_hari': pelatihan.durasi_hari, 'jam_per_hari': pelatihan.jam_per_hari,
+        'waktu_pelatihan': pelatihan.waktu_pelatihan or '-', 'penyelenggara': str(pelatihan.penyelenggara),
+        'no_sk': pelatihan.no_sk or '-', 'tanggal_sk': pelatihan.tanggal_sk.strftime('%d %B %Y') if pelatihan.tanggal_sk else '-', 'tentang_sk': pelatihan.tentang_sk or '-',
+        'total_peserta': pelatihan.jumlah_peserta_laki + pelatihan.jumlah_peserta_perempuan, 'jml_laki': pelatihan.jumlah_peserta_laki, 'jml_perempuan': pelatihan.jumlah_peserta_perempuan,
+        'jml_lulus': pelatihan.jumlah_lulus, 'jml_belum_lulus': pelatihan.jumlah_belum_lulus, 'blm_lulus': blm_lulus_text,
+        'rata_rata_pendidikan': pelatihan.rata_rata_pendidikan or '-', 'rata_rata_usia': pelatihan.rata_rata_usia or '-',
+        'rata_rata_gender': pelatihan.rata_rata_gender_display or '-', 'rata_rata_domisili': pelatihan.rata_rata_domisili or '-',
+        'tanggal_ttd': pelatihan.tanggal_penandatangan.strftime('%d %B %Y') if pelatihan.tanggal_penandatangan else '[Tanggal Belum Diisi]',
+        'jabatan_ttd': pelatihan.jabatan_penandatangan or '[Jabatan Belum Diisi]', 'nama_ttd': pelatihan.nama_penandatangan or '[Nama Pejabat Belum Diisi]',
+        'nip_ttd': pelatihan.nip_penandatangan or '[NIP Belum Diisi]', 'jumlah_instruktur': pelatihan.instruktur_set.count(), 'list_instruktur': instruktur_materi_string,'tanggal_laporan_dibuat': datetime.now().strftime('%d %B %Y'), 
+        'daftar_lampiran': daftar_lampiran_valid,
+    }
+
+    docx_buffer = _generate_report_docx(pelatihan, context)
     if not docx_buffer:
         messages.error(request, "Gagal membuat dokumen laporan (template tidak ditemukan atau error render).")
         return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)
 
+    print("Mulai konversi DOCX ke PDF...")
     report_pdf_buffer = _convert_docx_to_pdf(docx_buffer)
-    docx_buffer.close() # Tutup buffer docx setelah dibaca
+    docx_buffer.close()
     if not report_pdf_buffer:
-        messages.error(request, "Gagal mengonversi laporan ke PDF. Pastikan dependensi (LibreOffice/Word) terinstal dan berfungsi.")
+        messages.error(request, "Gagal mengonversi laporan ke PDF. Pastikan dependensi (LibreOffice/Word) terinstal.")
         return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)
 
-    lampiran_pdf_buffer = _merge_lampiran_pdfs(pelatihan, request)
-    final_pdf_buffer = _combine_pdfs(report_pdf_buffer, lampiran_pdf_buffer)
-    
-    # Tutup buffer sementara
-    report_pdf_buffer.close()
-    lampiran_pdf_buffer.close()
+    # --- TAHAP 3: GABUNGKAN SEMUA PDF (LAPORAN + PEMISAH + LAMPIRAN) ---
+    print(f"Mulai Tahap 3: Menggabungkan {len(objek_lampiran_valid)} lampiran valid.")
+    final_merger = PdfWriter()
 
-    if final_pdf_buffer.getbuffer().nbytes == 0:
-         messages.error(request, "Gagal membuat PDF akhir (kemungkinan semua bagian gagal diproses).")
-         final_pdf_buffer.close()
-         return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)
+    # Tambahkan Laporan Utama
+    report_reader = PdfReader(report_pdf_buffer)
+    for page in report_reader.pages:
+        final_merger.add_page(page)
+
+    # Iterasi melalui lampiran yang VALID, buat halaman pemisah, dan tambahkan
+    for i, document in enumerate(objek_lampiran_valid):
+        nomor_lampiran = i + 1
+        nama_lampiran = document.get_nama_display()
+        
+        print(f"Menambahkan Halaman Pemisah {nomor_lampiran}: {nama_lampiran}")
+        # 1. Buat & Tambahkan Halaman Pemisah
+        separator_buffer = _create_separator_page_pdf(nomor_lampiran, nama_lampiran)
+        separator_reader = PdfReader(separator_buffer)
+        final_merger.add_page(separator_reader.pages[0]) # Tambahkan halaman pemisah
+        separator_buffer.close()
+
+        print(f"Menambahkan Lampiran {nomor_lampiran}: {nama_lampiran}")
+        # 2. Tambahkan Lampiran Sebenarnya
+        try:
+            document.file_url.seek(0) # Pastikan file pointer di awal
+            lampiran_reader = PdfReader(document.file_url)
+            for page in lampiran_reader.pages:
+                final_merger.add_page(page)
+        except Exception as e:
+            print(f"Error saat menambahkan lampiran '{nama_lampiran}': {e}. Melewati file ini.")
+            messages.warning(request, f"Gagal menambahkan lampiran '{nama_lampiran}': {e}. Lampiran ini dilewati.")
+
+    # --- TAHAP 4: KIRIM RESPONSE ---
+    print("Menyelesaikan PDF akhir.")
+    final_pdf_buffer = BytesIO()
+    final_merger.write(final_pdf_buffer)
+    final_pdf_buffer.seek(0)
 
     response = HttpResponse(final_pdf_buffer.getvalue(), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="Laporan Lengkap - {pelatihan.judul}.pdf"'
-    final_pdf_buffer.close() # Tutup buffer akhir setelah dibaca oleh HttpResponse
+    
+    # Tutup semua buffer
+    report_pdf_buffer.close()
+    final_pdf_buffer.close()
     
     return response
