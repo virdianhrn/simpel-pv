@@ -10,6 +10,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     initial = True
+    atomic = False
 
     dependencies = [
         ('konfigurasi', '0004_populate_status_dokumen'),
@@ -17,6 +18,11 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunSQL(
+            sql="SET SESSION default_storage_engine=InnoDB;",
+            reverse_sql=migrations.RunSQL.noop,
+        ),
+
         migrations.CreateModel(
             name='Instruktur',
             fields=[
@@ -71,14 +77,26 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='PelatihanInstruktur',
             fields=[
-                ('id', models.CharField(default=shortuuid.main.ShortUUID.uuid, editable=False, max_length=22, primary_key=True, serialize=False)),
-                ('materi', models.CharField(max_length=127, verbose_name='Materi yang Diajarkan')),
-                ('instruktur', models.ForeignKey(db_constraint=False, on_delete=django.db.models.deletion.PROTECT, related_name='materi_diajar', to='pelatihan.instruktur')),
-                ('pelatihan', models.ForeignKey(db_constraint=False, on_delete=django.db.models.deletion.CASCADE, related_name='instruktur_set', to='pelatihan.pelatihan')),
+                ('id', models.CharField(primary_key=True, max_length=22,
+                                        default=shortuuid.main.ShortUUID.uuid,
+                                        editable=False, serialize=False)),
+                ('materi', models.CharField(max_length=127,
+                                            verbose_name='Materi yang Diajarkan')),
+                ('pelatihan', models.ForeignKey(
+                    to='pelatihan.pelatihan',
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='instruktur_set'
+                )),
+                ('instruktur', models.ForeignKey(
+                    to='pelatihan.instruktur',
+                    on_delete=django.db.models.deletion.PROTECT,
+                    related_name='materi_diajar'
+                )),
             ],
             options={
                 'verbose_name': 'Instruktur Pelatihan',
                 'verbose_name_plural': 'Daftar Instruktur Pelatihan',
+                'unique_together': {('pelatihan', 'instruktur', 'materi')}
             },
         ),
         migrations.CreateModel(

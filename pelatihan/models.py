@@ -252,6 +252,7 @@ class PelatihanInstruktur(models.Model):
     class Meta:
         verbose_name = "Instruktur Pelatihan"
         verbose_name_plural = "Daftar Instruktur Pelatihan"
+        unique_together = ('pelatihan', 'instruktur', 'materi')
 
     def __str__(self):
         return f"{self.instruktur.nama} - {self.pelatihan.judul}"
