@@ -93,6 +93,10 @@ DATABASES = {
         "PASSWORD": os.environ.get("DB_PASSWORD", "myuserpassword"),
         "HOST": os.environ.get("DB_HOST", "localhost"),
         "PORT": os.environ.get("DB_PORT", "3306"),
+        'OPTIONS': {
+            'init_command': "SET default_storage_engine=INNODB",
+            'charset': 'utf8mb4',
+        },
     }
 }
 
