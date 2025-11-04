@@ -1,5 +1,4 @@
 import os, shortuuid
-from shortuuid.django_fields import ShortUUIDField
 
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -20,7 +19,12 @@ class Pelatihan(models.Model):
    
 
     # --- Isian Awal ---
-    id = ShortUUIDField(primary_key=True, length=22, max_length=22)
+    id = models.CharField(
+        primary_key=True,
+        max_length=22,
+        default=shortuuid.uuid,
+        editable=False
+    )
     kejuruan = models.ForeignKey(Kejuruan, on_delete=models.PROTECT, related_name='pelatihan')
     judul = models.CharField(max_length=255, verbose_name="Program Pelatihan")
     paket_ke = models.PositiveSmallIntegerField(verbose_name="Paket Ke-")
@@ -197,7 +201,12 @@ class Instruktur(models.Model):
     """
     Menyimpan data master untuk Instruktur.
     """
-    id = ShortUUIDField(primary_key=True, length=22, max_length=22)
+    id = models.CharField(
+        primary_key=True,
+        max_length=22,
+        default=shortuuid.uuid,
+        editable=False
+    )
     nama = models.CharField(max_length=255, verbose_name="Nama Lengkap Instruktur")
     kejuruan = models.ForeignKey(
         Kejuruan, 
@@ -218,7 +227,12 @@ class PelatihanInstruktur(models.Model):
     """
     Intermediary model to link multiple instructors and their subjects to a single Pelatihan.
     """
-    id = ShortUUIDField(primary_key=True, length=22, max_length=22)
+    id = models.CharField(
+        primary_key=True,
+        max_length=22,
+        default=shortuuid.uuid,
+        editable=False
+    )
     pelatihan = models.ForeignKey('Pelatihan', on_delete=models.CASCADE, related_name='instruktur_set')
     
     instruktur = models.ForeignKey(
@@ -269,7 +283,12 @@ class PelatihanLampiran(models.Model):
         FOTOCOPY_SERTIFIKAT = '13', 'Fotocopy Sertifikat Pelatihan'
         DOKUMENTASI = '14', 'Dokumentasi Kegiatan'
 
-    id = ShortUUIDField(primary_key=True, length=22, max_length=22)
+    id = models.CharField(
+        primary_key=True,
+        max_length=22,
+        default=shortuuid.uuid,
+        editable=False
+    )
     pelatihan = models.ForeignKey(Pelatihan, on_delete=models.CASCADE,
                                   related_name='dokumen')
 
