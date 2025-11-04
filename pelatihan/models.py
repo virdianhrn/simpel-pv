@@ -241,11 +241,12 @@ class PelatihanInstruktur(models.Model):
         related_name='materi_diajar'
     )
     
-    materi = models.TextField(verbose_name="Materi yang Diajarkan")
+    materi = models.CharField(max_length=255, verbose_name="Materi yang Diajarkan")
 
     class Meta:
         verbose_name = "Instruktur Pelatihan"
         verbose_name_plural = "Daftar Instruktur Pelatihan"
+        unique_together = ('pelatihan', 'instruktur', 'materi')
 
     def __str__(self):
         return f"{self.instruktur.nama} - {self.pelatihan.judul}"

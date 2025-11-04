@@ -127,7 +127,7 @@ class PelatihanInstrukturForm(forms.ModelForm):
         model = PelatihanInstruktur
         fields = ['instruktur', 'materi']
         widgets = {
-            'materi': forms.Textarea(attrs={'class': 'form-control', 'rows': 1}),
+            'materi': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
 InstrukturFormSet = forms.inlineformset_factory(
