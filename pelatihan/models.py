@@ -233,12 +233,18 @@ class PelatihanInstruktur(models.Model):
         default=shortuuid.uuid,
         editable=False
     )
-    pelatihan = models.ForeignKey('Pelatihan', on_delete=models.CASCADE, related_name='instruktur_set')
-    
+    pelatihan = models.ForeignKey(
+        'Pelatihan',
+        on_delete=models.CASCADE,
+        related_name='instruktur_set',
+        db_constraint=False,
+    )
+
     instruktur = models.ForeignKey(
-        Instruktur,
-        on_delete=models.PROTECT, 
-        related_name='materi_diajar'
+        'Instruktur',
+        on_delete=models.PROTECT,
+        related_name='materi_diajar',
+        db_constraint=False,
     )
     
     materi = models.CharField(max_length=127, verbose_name="Materi yang Diajarkan")
