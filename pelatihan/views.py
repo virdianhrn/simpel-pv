@@ -5,8 +5,10 @@ from datetime import datetime
 import os
 import tempfile
 import subprocess
+import shutil
 
 # Third-party imports
+import fitz
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.staticfiles import finders
@@ -15,6 +17,7 @@ from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views import View
+from django.contrib.staticfiles import finders
 from PyPDF2 import PdfMerger, PdfReader, PdfWriter
 from docxtpl import DocxTemplate
 from PyPDF2.errors import PdfReadError
@@ -22,6 +25,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.lib.utils import simpleSplit
+from reportlab.pdfbase.pdfmetrics import stringWidth
 
 # Local application imports
 from accounts.decorators import admin_required, admin_or_pelatihan_owner_required
@@ -178,31 +182,25 @@ def _is_pdf_blank(file_object) -> bool:
     
     reader = None
     try:
-        # Pindah ke awal file
         file_object.seek(0)
         reader = PdfReader(file_object)
         
         if not reader.pages:
             return True # Tidak ada halaman
         
-        page = reader.pages[0]
+        page = reader.pages[0] 
         has_text = bool(page.extract_text().strip())
         has_images = bool(page.images)
         
-        # Anggap kosong jika tidak ada teks DAN tidak ada gambar
         if not has_text and not has_images:
-            return True
+            return True # Anggap kosong
         
         return False # Ada konten
         
-    except PdfReadError:
-        print(f"Peringatan: PdfReadError, file mungkin rusak. Dianggap kosong.")
-        return True # Anggap rusak = kosong
     except Exception as e:
-        print(f"Error saat mengecek PDF: {e}. Dianggap kosong.")
+        print(f"Error _is_pdf_blank: {e}. File dianggap kosong.")
         return True
     finally:
-        # Penting: Kembalikan pointer file ke awal untuk penggunaan berikutnya
         if file_object:
             file_object.seek(0)
 
@@ -211,191 +209,328 @@ def _create_separator_page_pdf(nomor: int, nama: str) -> BytesIO:
     """Membuat PDF satu halaman (A4) dengan teks di tengah."""
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
-    width, height = A4 # Mendapatkan ukuran A4 (dalam points)
+    width, height = A4 
     margin_horizontal = 2.5 * cm
     
-    # --- 1. Gambar Judul "LAMPIRAN X" ---
     c.setFont("Helvetica-Bold", 24)
-    # Panggil drawCentredString langsung di canvas 'c'
     c.drawCentredString(width / 2.0, height / 2.0 + (1*cm), f"LAMPIRAN {nomor}")
 
-    # --- 2. Siapkan data untuk nama lampiran (multi-baris) ---
-    c.setFont("Helvetica-Bold", 18) # Atur font untuk simpleSplit
-    
-    maxWidth = width - (2 * margin_horizontal) # Lebar maks = Lebar Halaman - (2 x 2.5cm)
+    c.setFont("Helvetica-Bold", 18) 
+    maxWidth = width - (2 * margin_horizontal)
     fontName = "Helvetica-Bold"
     fontSize = 18
-    line_height = 22 # Perkiraan tinggi baris untuk font 18pt
+    line_height = 22
     
-    # Dapatkan daftar baris yang sudah di-wrap
     lines = simpleSplit(nama, fontName, fontSize, maxWidth)
-
-    # --- 3. Gambar nama lampiran baris per baris ---
-    # Mulai gambar 1cm di bawah judul "LAMPIRAN X"
-    current_y = height / 2.0 - (1*cm) 
     
+    current_y = height / 2.0 - (1*cm) 
     for line in lines:
-        # Panggil drawCentredString langsung di canvas 'c' untuk setiap baris
         c.drawCentredString(width / 2.0, current_y, line)
-        # Turunkan posisi Y untuk baris berikutnya
         current_y -= line_height 
 
-    c.showPage() # Selesaikan halaman
-    c.save() # Simpan PDF ke buffer
-    
+    c.showPage()
+    c.save()
     buffer.seek(0)
     return buffer
 
 # --- Fungsi Helper: Konversi DOCX ke PDF ---
-def _convert_docx_to_pdf(docx_buffer: BytesIO) -> BytesIO | None:
-    """Mengonversi buffer DOCX ke buffer PDF menggunakan libreoffice --headless."""
+def _convert_docx_to_pdf_simple(docx_buffer: BytesIO) -> BytesIO | None:
+    """Mengonversi DOCX ke PDF menggunakan --convert-to (tanpa update TOC)."""
     temp_docx_path = None
-    temp_output_dir = None # Direktori untuk output
+    temp_output_dir = None
     output_pdf_path = None
     report_pdf_buffer = BytesIO()
-
+    LIBREOFFICE_PATH = 'libreoffice'
     try:
         temp_output_dir = tempfile.mkdtemp()
+        temp_profile_dir = os.path.join(temp_output_dir, "lo_profile")
+        os.makedirs(temp_profile_dir)
+        user_profile_arg = f"-env:UserInstallation=file://{temp_profile_dir}"
+        sub_env = os.environ.copy()
+        sub_env['HOME'] = temp_profile_dir
 
-        # Tulis DOCX ke file sementara
-        with tempfile.NamedTemporaryFile(suffix=".docx", delete=False) as temp_docx:
+        with tempfile.NamedTemporaryFile(suffix=".docx", delete=False, dir=temp_output_dir) as temp_docx:
             temp_docx.write(docx_buffer.read())
             temp_docx_path = temp_docx.name
 
-        # Tentukan path output PDF yang diharapkan
         output_pdf_filename = os.path.basename(temp_docx_path).replace('.docx', '.pdf')
         output_pdf_path = os.path.join(temp_output_dir, output_pdf_filename)
 
-        process = subprocess.run(
+        print(f"Langkah Konversi: Mengonversi {temp_docx_path} ke PDF...")
+        convert_process = subprocess.run(
             [
-                'libreoffice',
-                '--headless', # Mode tanpa GUI
-                '--convert-to', 'pdf', # Format output
-                '--outdir', temp_output_dir, # Direktori output
-                temp_docx_path # File input
+                LIBREOFFICE_PATH, user_profile_arg,
+                '--headless', '--nologo', '--norestore',
+                '--convert-to', 'pdf',
+                '--outdir', temp_output_dir, 
+                temp_docx_path 
             ],
-            capture_output=True, text=True, check=True, timeout=60
+            capture_output=True, text=True, check=True, timeout=60, env=sub_env
         )
+        print("Konversi PDF selesai.")
 
-        # Pastikan file output benar-benar dibuat
         if not os.path.exists(output_pdf_path):
             print(f"Error: File output PDF tidak ditemukan di {output_pdf_path}")
-            print("Stderr:", process.stderr)
+            print("Stderr (Konversi):", convert_process.stderr)
             return None
 
         with open(output_pdf_path, 'rb') as f_pdf:
             report_pdf_buffer.write(f_pdf.read())
         report_pdf_buffer.seek(0)
         return report_pdf_buffer
-
-    except FileNotFoundError:
-        print("Error: Perintah 'libreoffice' tidak ditemukan. Pastikan LibreOffice terinstal di container.")
-        return None
-    except subprocess.CalledProcessError as e:
-        print(f"Error saat menjalankan libreoffice (return code {e.returncode}): {e}")
-        print("Stderr:", e.stderr)
-        return None
-    except subprocess.TimeoutExpired:
-         print("Error: Proses libreoffice timeout.")
-         return None
     except Exception as e:
-        print(f"Error lain saat konversi libreoffice: {e}")
+        print(f"Error saat konversi PDF sederhana: {e}")
         return None
     finally:
-        # Hapus file sementara dan direktori
-        if temp_docx_path and os.path.exists(temp_docx_path): os.remove(temp_docx_path)
-        if output_pdf_path and os.path.exists(output_pdf_path): os.remove(output_pdf_path)
         if temp_output_dir and os.path.exists(temp_output_dir): 
-            try:
-                os.rmdir(temp_output_dir) # Coba hapus direktori
-            except OSError:
-                print(f"Peringatan: Tidak dapat menghapus direktori sementara {temp_output_dir}") # Mungkin tidak kosong jika error
-
-# --- Fungsi Helper: Gabungkan Dua PDF ---
-def _combine_pdfs(pdf_buffer1: BytesIO, pdf_buffer2: BytesIO) -> BytesIO:
-    """Menggabungkan dua buffer PDF menjadi satu buffer PDF."""
-    final_merger = PdfWriter()
-    final_pdf_buffer = BytesIO()
-    
-    # Tambahkan halaman dari buffer pertama
-    if pdf_buffer1 and pdf_buffer1.getbuffer().nbytes > 0:
-         try:
-            reader1 = PdfReader(pdf_buffer1)
-            for page in reader1.pages:
-                final_merger.add_page(page)
-         except Exception as e:
-            print(f"Error membaca PDF buffer 1: {e}")
-            # Mungkin tetap lanjutkan tanpa buffer 1
-
-    # Tambahkan halaman dari buffer kedua
-    if pdf_buffer2 and pdf_buffer2.getbuffer().nbytes > 0:
-        try:
-            reader2 = PdfReader(pdf_buffer2)
-            for page in reader2.pages:
-                final_merger.add_page(page)
-        except Exception as e:
-            print(f"Error membaca PDF buffer 2: {e}")
-            # Mungkin tetap lanjutkan tanpa buffer 2
-            
-    final_merger.write(final_pdf_buffer)
-    final_pdf_buffer.seek(0)
-    return final_pdf_buffer
+            try: shutil.rmtree(temp_output_dir)
+            except OSError as e: print(f"Peringatan: Gagal hapus temp dir {temp_output_dir}: {e}")
 
 # --- Fungsi Helper: Generate DOCX (Diperbarui untuk menerima context) ---
-def _generate_report_docx(pelatihan: Pelatihan, context: dict) -> BytesIO | None:
-    """Mengisi template DOCX dengan data pelatihan dari context."""
-    
-    # Tentukan path template
-    template_relative_path = 'docs/laporan-template.docx' 
+def _generate_report_docx(pelatihan: Pelatihan, context: dict, template_name: str) -> BytesIO | None:
+    """Mengisi template DOCX yang spesifik dengan data dari context."""
+    template_relative_path = f'docs/{template_name}' 
     template_path = finders.find(template_relative_path) 
-
     if not template_path:
         print(f"Error: Template laporan DOCX '{template_relative_path}' tidak ditemukan.")
         return None
-
     try:
         doc = DocxTemplate(template_path)
-        doc.render(context) # Render menggunakan context yang sudah disiapkan
-        
+        doc.render(context)
         docx_buffer = BytesIO()
         doc.save(docx_buffer)
         docx_buffer.seek(0)
         return docx_buffer
     except Exception as e:
-        print(f"Error saat generate DOCX: {e}")
+        print(f"Error saat generate DOCX ({template_name}): {e}")
         return None
+
+def _int_to_roman_lower(num):
+    """Konversi integer ke angka Romawi huruf kecil (misal: ii, iii, iv)"""
+    val = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1]
+    syb = ["M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"]
+    roman_num = ''; i = 0
+    while num > 0:
+        for _ in range(num // val[i]): roman_num += syb[i]; num -= val[i]
+        i += 1
+    return roman_num.lower()
+
+def _extract_toc_data(pdf_buffer: BytesIO) -> (dict, list):
+    """Menganalisis buffer PDF KONTEN UTAMA untuk menemukan nomor halaman."""
+    toc_data = {}
+    pdf_buffer.seek(0)
+    
+    # Definisikan struktur TOC Anda persis seperti contoh
+    # (Teks yang dicari di PDF, Teks yang akan dicetak di TOC, Level Indentasi)
+    TOC_STRUCTURE = [
+        ('BAB I PENDAHULUAN', 'BAB I PENDAHULUAN', 1),
+        ('A. Latar Belakang', 'A. Latar Belakang', 2),
+        ('B. Dasar Pelaksanaan', 'B. Dasar Pelaksanaan', 2),
+        ('C. Maksud dan Tujuan', 'C. Maksud dan Tujuan', 2),
+        ('D. Sasaran Pelatihan', 'D. Sasaran Pelatihan', 2),
+        ('BAB II METODE PELAKSANAAN', 'BAB II METODE PELAKSANAAN', 1),
+        ('A. Metode Pelaksanaan', 'A. Metode Pelaksanaan', 2),
+        ('B. Kompetensi Penunjang', 'B. Kompetensi Penunjang', 2),
+        ('BAB III PELAKSANAAN KEGIATAN', 'BAB III PELAKSANAAN KEGIATAN', 1),
+        ('A. Kepesertaan', 'A. Kepesertaan', 2),
+        ('B. Tenaga Pengajar / Instruktur', 'B. Tenaga Pengajar / Instruktur', 2),
+        ('C. Waktu dan Tempat Pelaksanaan', 'C. Waktu dan Tempat Pelaksanaan', 2),
+        ('D. Sumber Biaya', 'D. Sumber Biaya', 2),
+        ('E. Materi Pelatihan', 'E. Materi Pelatihan', 2),
+        ('F. Pelaksanaan Pelatihan', 'F. Pelaksanaan Pelatihan', 2),
+        ('BAB IV EVALUASI DAN SARAN', 'BAB IV EVALUASI DAN SARAN', 1),
+        ('A. Evaluasi', 'A. Evaluasi', 2), 
+        ('B. Saran', 'B. Saran', 2),
+        ('BAB V PENUTUP', 'BAB V PENUTUP', 1)
+    ]
+    
+    found_data = {}
+    
+    try:
+        doc = fitz.open(stream=pdf_buffer, filetype="pdf")
+        
+        for page_num in range(len(doc)):
+            page_index_arab = page_num + 1
+            
+            # --- PERUBAHAN DIMULAI DI SINI ---
+            
+            # 1. Dapatkan teks mentah (mungkin mengandung \n)
+            page_text_raw = doc.load_page(page_num).get_text("text")
+            
+            # 2. Normalisasi teks: ganti newline dengan spasi
+            page_text_normalized = page_text_raw.replace('\n', ' ')
+            
+            # 3. Normalisasi teks: rapatkan spasi ganda menjadi tunggal
+            page_text = ' '.join(page_text_normalized.split()) 
+
+            # --- AKHIR PERUBAHAN ---
+            
+            # Cari kunci di halaman ini (sekarang menggunakan page_text yang sudah bersih)
+            for search_key, label, level in TOC_STRUCTURE:
+                if search_key not in found_data and search_key in page_text:
+                    found_data[search_key] = {
+                        'label': label,
+                        'level': level,
+                        'page_arab': page_index_arab 
+                    }
+        
+        doc.close()
+        print(f"Ekstraksi TOC selesai. Data: {found_data}")
+        
+    except Exception as e:
+        print(f"Error saat mengekstrak teks (PyMuPDF): {e}")
+    
+    pdf_buffer.seek(0)
+    return found_data, TOC_STRUCTURE
+
+def _create_toc_pdf(cover_page_count: int, toc_page_count: int, daftar_lampiran_page_count: int, 
+                    toc_data: dict, toc_structure: list) -> BytesIO:
+    """Membuat PDF halaman Daftar Isi multi-level dengan format yang rapi."""
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+    margin = 2.5 * cm
+    
+    y = height - margin - (1*cm) # Posisi Y awal
+    c.setFont("Helvetica-Bold", 16)
+    c.drawCentredString(width / 2.0, y, "DAFTAR ISI")
+    y -= (1.5 * cm)
+
+    line_height = 20 # Jarak antar baris
+    fontName = "Helvetica"
+    fontNameBold = "Helvetica-Bold"
+    fontSize = 12
+    x_start = margin
+    x_end = width - margin
+    
+    # --- Fungsi Helper Internal ---
+    def drawTOCEntry(c, y, label, page_num_str, level):
+        """Menggambar satu baris entri Daftar Isi dengan rapi."""
+        
+        # 1. Atur Font dan Indentasi berdasarkan level
+        if level == 1: # BAB
+            c.setFont(fontNameBold, fontSize)
+            indent = 0
+        elif level == 2: # Sub-bab
+            c.setFont(fontName, fontSize)
+            indent = 1 * cm
+        else: # Front matter (Kata Pengantar, dll)
+            c.setFont(fontNameBold, fontSize)
+            indent = 0
+        
+        x_label = x_start + indent
+        
+        # 2. Gambar Label (Teks Kiri)
+        c.drawString(x_label, y, label)
+        
+        # 3. Gambar Nomor Halaman (Teks Kanan)
+        # Gunakan font yang sama dengan label agar rata
+        page_num_width = stringWidth(page_num_str, c._fontname, c._fontsize)
+        x_page_num = x_end - page_num_width
+        c.drawString(x_page_num, y, page_num_str)
+
+        # 4. Gambar Garis Titik-titik (Dot Leader)
+        label_width = stringWidth(label, c._fontname, c._fontsize)
+        x_label_end = x_label + label_width
+        x_page_num_start = x_page_num
+        
+        gap = 0.2 * cm # Jarak 2mm di kiri dan kanan titik-titik
+        x_dots_start = x_label_end + gap
+        x_dots_end = x_page_num_start - gap
+        
+        # Y posisinya sedikit di atas baseline font
+        y_dots = y + (fontSize * 0.2) 
+
+        if x_dots_start < x_dots_end:
+            c.saveState() # Simpan pengaturan grafis
+            c.setDash(1, 2) # Atur pola garis: 1pt gambar, 2pt spasi
+            c.setStrokeColorRGB(0.5, 0.5, 0.5) # Warna abu-abu (opsional)
+            c.line(x_dots_start, y_dots, x_dots_end, y_dots) # Gambar garis
+            c.restoreState() # Kembalikan ke pengaturan awal (garis solid, hitam)
+
+    # --- Akhir Fungsi Helper ---
+
+
+    # 1. Gambar Front Matter
+    y -= (0.5 * cm)
+    drawTOCEntry(c, y, "KATA PENGANTAR", _int_to_roman_lower(cover_page_count), 0)
+    y -= line_height
+    drawTOCEntry(c, y, "DAFTAR ISI", _int_to_roman_lower(cover_page_count + toc_page_count), 0)
+    y -= line_height
+    drawTOCEntry(c, y, "DAFTAR LAMPIRAN", _int_to_roman_lower(cover_page_count + toc_page_count + daftar_lampiran_page_count), 0)
+    y -= line_height
+    
+    # 2. Gambar Konten Utama (Halaman Arab)
+    for search_key, label, level in toc_structure:
+        found_data = toc_data.get(search_key)
+        
+        if found_data and level > 0: # Hanya proses BAB dan Sub-bab
+            page_num_arab = str(found_data['page_arab'])
+            
+            if level == 1:
+                y -= (0.5 * cm) # Spasi ekstra sebelum BAB baru
+            
+            drawTOCEntry(c, y, label, page_num_arab, level)
+            y -= line_height
+    
+    c.showPage()
+    c.save()
+    buffer.seek(0)
+    return buffer
+
+def _create_daftar_lampiran_pdf(lampiran_list: list) -> BytesIO:
+    """Membuat PDF satu halaman (A4) untuk Daftar Lampiran."""
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+    margin = 2.5 * cm
+    
+    y = height - margin - (1*cm) # Posisi Y awal
+    c.setFont("Helvetica-Bold", 16)
+    c.drawCentredString(width / 2.0, y, "DAFTAR LAMPIRAN")
+    y -= (1.5 * cm)
+
+    c.setFont("Helvetica", 12)
+    line_height = 18
+    
+    # Loop melalui daftar lampiran yang valid
+    for item in lampiran_list:
+        text = f"Lampiran {item['nomor']}: {item['nama']}"
+        c.drawString(margin, y, text)
+        y -= line_height
+        
+        # Jika 'y' terlalu rendah, buat halaman baru (opsional)
+        if y < (margin + (2*cm)):
+            c.showPage()
+            y = height - margin
+            c.setFont("Helvetica", 12)
+
+    c.showPage()
+    c.save()
+    buffer.seek(0)
+    return buffer
 
 @admin_or_pelatihan_owner_required
 def generate_full_report_pdf_view(request, pelatihan_id):
     pelatihan = get_object_or_404(Pelatihan, pk=pelatihan_id)
     
-    # --- TAHAP 1: PERSIAPAN & PENGECEKAN LAMPIRAN ---
+    # --- TAHAP 1: PERSIAPAN LAMPIRAN ---
     print("Mulai Tahap 1: Pengecekan Lampiran")
-    daftar_lampiran_valid = [] # Untuk template DOCX (nomor, nama)
-    objek_lampiran_valid = [] # Untuk penggabungan PDF (objek file)
-    
+    daftar_lampiran_valid = [] 
+    objek_lampiran_valid = [] 
     lampiran_counter = 1
-    # Ambil semua lampiran yang terhubung, diurutkan berdasarkan kode nama ('00', '01', ...)
     semua_lampiran = PelatihanLampiran.objects.filter(pelatihan=pelatihan).order_by('nama')
-
     for document in semua_lampiran:
-        # Cek apakah file PDF kosong atau tidak
         if not _is_pdf_blank(document.file_url):
             nama_lampiran = document.get_nama_display()
-            # Tambahkan ke list untuk Daftar Isi di DOCX
-            daftar_lampiran_valid.append({
-                'nomor': lampiran_counter,
-                'nama': nama_lampiran
-            })
-            # Tambahkan objek file ke list untuk digabungkan nanti
+            daftar_lampiran_valid.append({'nomor': lampiran_counter, 'nama': nama_lampiran})
             objek_lampiran_valid.append(document)
             lampiran_counter += 1
         else:
             print(f"Melewati lampiran kosong: {document.get_nama_display()}")
 
-    # --- TAHAP 2: GENERATE LAPORAN UTAMA (DOCX -> PDF) ---
-    print(f"Mulai Tahap 2: Generate Laporan Utama (dengan {len(daftar_lampiran_valid)} lampiran terdaftar)")
-    
+    # --- TAHAP 2: SIAPKAN CONTEXT ---
+    print("Mulai Tahap 2: Persiapan Context")
     instrukturs = pelatihan.instruktur_set.select_related('instruktur').all()
     instruktur_materi_parts = []
     for item in instrukturs:
@@ -430,61 +565,90 @@ def generate_full_report_pdf_view(request, pelatihan_id):
         'daftar_lampiran': daftar_lampiran_valid,
     }
 
-    docx_buffer = _generate_report_docx(pelatihan, context)
-    if not docx_buffer:
-        messages.error(request, "Gagal membuat dokumen laporan (template tidak ditemukan atau error render).")
-        return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)
+    # --- TAHAP 3: GENERATE & KONVERSI SEMUA BAGIAN ---
+    print("Mulai Tahap 3a: Generate Sampul")
+    sampul_docx = _generate_report_docx(pelatihan, context, 'laporan-sampul.docx')
+    if not sampul_docx: messages.error(request, "Gagal generate sampul."); return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)
+    sampul_pdf = _convert_docx_to_pdf_simple(sampul_docx); sampul_docx.close()
+    if not sampul_pdf: messages.error(request, "Gagal konversi PDF sampul."); return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)
+    
+    print("Mulai Tahap 3b: Generate Konten")
+    konten_docx = _generate_report_docx(pelatihan, context, 'laporan-template.docx')
+    if not konten_docx: messages.error(request, "Gagal generate konten."); return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)
+    konten_pdf = _convert_docx_to_pdf_simple(konten_docx); konten_docx.close()
+    if not konten_pdf: messages.error(request, "Gagal konversi PDF konten."); return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)
 
-    print("Mulai konversi DOCX ke PDF...")
-    report_pdf_buffer = _convert_docx_to_pdf(docx_buffer)
-    docx_buffer.close()
-    if not report_pdf_buffer:
-        messages.error(request, "Gagal mengonversi laporan ke PDF. Pastikan dependensi (LibreOffice/Word) terinstal.")
-        return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)
+    print("Mulai Tahap 3c: Membuat PDF Daftar Lampiran")
+    daftar_lampiran_pdf = _create_daftar_lampiran_pdf(daftar_lampiran_valid)
 
-    # --- TAHAP 3: GABUNGKAN SEMUA PDF (LAPORAN + PEMISAH + LAMPIRAN) ---
-    print(f"Mulai Tahap 3: Menggabungkan {len(objek_lampiran_valid)} lampiran valid.")
+    # TAHAP 4: EKSTRAKSI & BUAT TOC
+    print("Mulai Tahap 4: Ekstraksi & Buat TOC")
+    cover_page_count = 0
+    try: 
+        sampul_reader_temp = PdfReader(sampul_pdf)
+        cover_page_count = len(sampul_reader_temp.pages)
+        sampul_pdf.seek(0)
+    except: 
+        print("Error menghitung halaman sampul, diasumsikan 1")
+        cover_page_count = 1
+    
+    daftar_lampiran_page_count = 1 # Asumsi 1 halaman, bisa dihitung jika perlu
+    toc_page_count = 1 # Asumsi 1 halaman
+    
+    toc_data, toc_structure_list = _extract_toc_data(konten_pdf) 
+    
+    print("Mulai Tahap 4b: Membuat PDF Daftar Isi...")
+    toc_pdf = _create_toc_pdf(cover_page_count, toc_page_count, daftar_lampiran_page_count, toc_data, toc_structure_list)
+    
+    # --- TAHAP 5: GABUNGKAN SEMUA PDF ---
+    print(f"Mulai Tahap 5: Menggabungkan {len(objek_lampiran_valid)} lampiran valid.")
     final_merger = PdfWriter()
+    
+    # 1. Tambahkan Sampul (misal: hal i, ii)
+    sampul_reader = PdfReader(sampul_pdf); [final_merger.add_page(p) for p in sampul_reader.pages]
+    
+    # 2. Tambahkan Daftar Isi (misal: hal iii)
+    toc_reader = PdfReader(toc_pdf); [final_merger.add_page(p) for p in toc_reader.pages]
 
-    # Tambahkan Laporan Utama
-    report_reader = PdfReader(report_pdf_buffer)
-    for page in report_reader.pages:
-        final_merger.add_page(page)
+    # 3. Tambahkan Daftar Lampiran (misal: hal iv)
+    daftar_lampiran_reader = PdfReader(daftar_lampiran_pdf); [final_merger.add_page(p) for p in daftar_lampiran_reader.pages]
+    
+    # 4. Tambahkan Konten Utama (misal: hal 1, 2, 3...)
+    konten_reader = PdfReader(konten_pdf); [final_merger.add_page(p) for p in konten_reader.pages]
 
-    # Iterasi melalui lampiran yang VALID, buat halaman pemisah, dan tambahkan
+    # 5. Tambahkan Halaman Pemisah dan Lampiran
     for i, document in enumerate(objek_lampiran_valid):
         nomor_lampiran = i + 1
         nama_lampiran = document.get_nama_display()
         
         print(f"Menambahkan Halaman Pemisah {nomor_lampiran}: {nama_lampiran}")
-        # 1. Buat & Tambahkan Halaman Pemisah
         separator_buffer = _create_separator_page_pdf(nomor_lampiran, nama_lampiran)
-        separator_reader = PdfReader(separator_buffer)
-        final_merger.add_page(separator_reader.pages[0]) # Tambahkan halaman pemisah
-        separator_buffer.close()
+        try:
+            separator_reader = PdfReader(separator_buffer)
+            final_merger.add_page(separator_reader.pages[0])
+        finally:
+            separator_buffer.close()
 
         print(f"Menambahkan Lampiran {nomor_lampiran}: {nama_lampiran}")
-        # 2. Tambahkan Lampiran Sebenarnya
         try:
-            document.file_url.seek(0) # Pastikan file pointer di awal
+            document.file_url.seek(0) 
             lampiran_reader = PdfReader(document.file_url)
             for page in lampiran_reader.pages:
                 final_merger.add_page(page)
         except Exception as e:
-            print(f"Error saat menambahkan lampiran '{nama_lampiran}': {e}. Melewati file ini.")
-            messages.warning(request, f"Gagal menambahkan lampiran '{nama_lampiran}': {e}. Lampiran ini dilewati.")
-
-    # --- TAHAP 4: KIRIM RESPONSE ---
+            print(f"Error saat menambahkan lampiran '{nama_lampiran}': {e}.")
+            messages.warning(request, f"Gagal menambahkan lampiran '{nama_lampiran}': {e}.")
+            
+    # --- TAHAP 6: KIRIM RESPONSE ---
     print("Menyelesaikan PDF akhir.")
     final_pdf_buffer = BytesIO()
     final_merger.write(final_pdf_buffer)
     final_pdf_buffer.seek(0)
-
+    
     response = HttpResponse(final_pdf_buffer.getvalue(), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="Laporan Lengkap - {pelatihan.judul}.pdf"'
     
     # Tutup semua buffer
-    report_pdf_buffer.close()
-    final_pdf_buffer.close()
+    sampul_pdf.close(); konten_pdf.close(); toc_pdf.close(); daftar_lampiran_pdf.close(); final_pdf_buffer.close()
     
     return response
