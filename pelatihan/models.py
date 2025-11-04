@@ -241,7 +241,7 @@ class PelatihanInstruktur(models.Model):
         related_name='materi_diajar'
     )
     
-    materi = models.CharField(max_length=255, verbose_name="Materi yang Diajarkan")
+    materi = models.CharField(max_length=127, verbose_name="Materi yang Diajarkan")
 
     class Meta:
         verbose_name = "Instruktur Pelatihan"
