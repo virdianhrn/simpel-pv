@@ -121,7 +121,7 @@ class Migration(migrations.Migration):
 
 
     dependencies = [
-        ('pelatihan', '0001_initial'),
+        ('pelatihan', '0002_fix_mariadb_fk'),
         ('konfigurasi', '0003_populate_kejuruan'),
     ]
 
