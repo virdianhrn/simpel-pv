@@ -600,55 +600,101 @@ def generate_full_report_pdf_view(request, pelatihan_id):
     print("Mulai Tahap 4b: Membuat PDF Daftar Isi...")
     toc_pdf = _create_toc_pdf(cover_page_count, toc_page_count, daftar_lampiran_page_count, toc_data, toc_structure_list)
     
-    # --- TAHAP 5: GABUNGKAN SEMUA PDF ---
-    print(f"Mulai Tahap 5: Menggabungkan {len(objek_lampiran_valid)} lampiran valid.")
-    final_merger = PdfWriter()
+    # --- TAHAP 5: PERSIAPKAN SEMUA BAGIAN PDF DALAM SATU LIST ---
+    print("Mulai Tahap 5: Mempersiapkan semua bagian PDF di memori...")
     
-    # 1. Tambahkan Sampul (misal: hal i, ii)
-    sampul_reader = PdfReader(sampul_pdf); [final_merger.add_page(p) for p in sampul_reader.pages]
+    # List untuk menampung semua bagian PDF (sebagai BytesIO)
+    pdf_pieces_to_merge = []
+    # List untuk stream yang perlu ditutup di akhir
+    streams_to_close = [] 
     
-    # 2. Tambahkan Daftar Isi (misal: hal iii)
-    toc_reader = PdfReader(toc_pdf); [final_merger.add_page(p) for p in toc_reader.pages]
-
-    # 3. Tambahkan Daftar Lampiran (misal: hal iv)
-    daftar_lampiran_reader = PdfReader(daftar_lampiran_pdf); [final_merger.add_page(p) for p in daftar_lampiran_reader.pages]
-    
-    # 4. Tambahkan Konten Utama (misal: hal 1, 2, 3...)
-    konten_reader = PdfReader(konten_pdf); [final_merger.add_page(p) for p in konten_reader.pages]
-
-    # 5. Tambahkan Halaman Pemisah dan Lampiran
-    for i, document in enumerate(objek_lampiran_valid):
-        nomor_lampiran = i + 1
-        nama_lampiran = document.get_nama_display()
+    try:
+        # 1. Tambahkan Laporan Utama (yang sudah ada di memori)
+        pdf_pieces_to_merge.append(sampul_pdf); streams_to_close.append(sampul_pdf)
+        pdf_pieces_to_merge.append(toc_pdf); streams_to_close.append(toc_pdf)
+        pdf_pieces_to_merge.append(daftar_lampiran_pdf); streams_to_close.append(daftar_lampiran_pdf)
+        pdf_pieces_to_merge.append(konten_pdf); streams_to_close.append(konten_pdf)
         
-        print(f"Menambahkan Halaman Pemisah {nomor_lampiran}: {nama_lampiran}")
-        separator_buffer = _create_separator_page_pdf(nomor_lampiran, nama_lampiran)
-        try:
-            separator_reader = PdfReader(separator_buffer)
-            final_merger.add_page(separator_reader.pages[0])
-        finally:
-            separator_buffer.close()
+        print(f"Menambahkan {len(pdf_pieces_to_merge)} halaman laporan utama.")
 
-        print(f"Menambahkan Lampiran {nomor_lampiran}: {nama_lampiran}")
-        try:
-            document.file_url.seek(0) 
-            lampiran_reader = PdfReader(document.file_url)
-            for page in lampiran_reader.pages:
-                final_merger.add_page(page)
-        except Exception as e:
-            print(f"Error saat menambahkan lampiran '{nama_lampiran}': {e}.")
-            messages.warning(request, f"Gagal menambahkan lampiran '{nama_lampiran}': {e}.")
+        # 2. Loop & Persiapkan Lampiran (Baca dari disk, salin ke memori)
+        for i, document in enumerate(objek_lampiran_valid):
+            nomor_lampiran = i + 1
+            nama_lampiran = document.get_nama_display()
             
-    # --- TAHAP 6: KIRIM RESPONSE ---
-    print("Menyelesaikan PDF akhir.")
-    final_pdf_buffer = BytesIO()
-    final_merger.write(final_pdf_buffer)
-    final_pdf_buffer.seek(0)
+            # 2a. Buat Halaman Pemisah (in-memory)
+            print(f"Mempersiapkan Pemisah {nomor_lampiran}: {nama_lampiran}")
+            separator_buffer = _create_separator_page_pdf(nomor_lampiran, nama_lampiran)
+            pdf_pieces_to_merge.append(separator_buffer)
+            streams_to_close.append(separator_buffer) # Tambahkan ke list untuk ditutup
+
+            # 2b. Baca Lampiran dari Disk ke Memori
+            print(f"Membaca Lampiran {nomor_lampiran}: {nama_lampiran}")
+            file_stream = None
+            try:
+                file_stream = document.file_url.open('rb')
+                # Baca seluruh file ke buffer memori baru
+                attachment_buffer = BytesIO(file_stream.read())
+                pdf_pieces_to_merge.append(attachment_buffer)
+                streams_to_close.append(attachment_buffer) # Tambahkan buffer baru ke list
+            except Exception as e:
+                print(f"Error saat MEMBACA lampiran '{nama_lampiran}': {e}.")
+                messages.warning(request, f"Gagal membaca lampiran '{nama_lampiran}': {e}.")
+                if 'attachment_buffer' in locals(): attachment_buffer.close()
+                separator_buffer.close() # Tutup juga separatornya jika lampiran gagal
+            finally:
+                if file_stream:
+                    file_stream.close() # TUTUP FILE DISK ASLI SEGERA
+        
+        # --- TAHAP 6: GABUNGKAN SEMUA BAGIAN DARI MEMORI ---
+        print(f"Mulai Tahap 6: Menggabungkan {len(pdf_pieces_to_merge)} bagian PDF...")
+        final_merger = PdfMerger() # Gunakan PdfMerger untuk .append()
+        
+        for i, pdf_buffer in enumerate(pdf_pieces_to_merge):
+            try:
+                pdf_buffer.seek(0) # Pastikan setiap buffer ada di awal
+                final_merger.append(pdf_buffer) # Menggabungkan seluruh PDF (dari memori)
+                print(f"Berhasil menggabungkan bagian {i+1}...")
+            except Exception as merge_error:
+                print(f"Error saat menggabungkan bagian {i+1}: {merge_error}")
+                # Coba tambahkan halaman per halaman sebagai fallback
+                try:
+                    pdf_buffer.seek(0)
+                    reader = PdfReader(pdf_buffer)
+                    for page in reader.pages:
+                        final_merger.add_page(page)
+                    print(f"  -> Fallback add_page() berhasil untuk bagian {i+1}.")
+                except Exception as page_error:
+                    print(f"  -> Fallback add_page() GAGAL untuk bagian {i+1}: {page_error}")
+                    messages.warning(request, f"Gagal menggabungkan bagian {i+1} dari laporan.")
+
+        # --- TAHAP 7: TULIS & KIRIM RESPONSE ---
+        print("Menyelesaikan PDF akhir.")
+        final_pdf_buffer = BytesIO()
+        final_merger.write(final_pdf_buffer)
+        final_merger.close() # Tutup merger
+        final_pdf_buffer.seek(0)
+        
+        response = HttpResponse(final_pdf_buffer.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="Laporan Lengkap - {pelatihan.judul}.pdf"'
+                
+        return response
+
+    except Exception as e:
+        # Jika terjadi error besar
+        print(f"Terjadi error besar saat membuat laporan: {e}")
+        messages.error(request, f"Terjadi error besar saat membuat laporan: {e}")
+        return redirect('pelatihan:detail', pelatihan_id=pelatihan.id)
     
-    response = HttpResponse(final_pdf_buffer.getvalue(), content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="Laporan Lengkap - {pelatihan.judul}.pdf"'
-    
-    # Tutup semua buffer
-    sampul_pdf.close(); konten_pdf.close(); toc_pdf.close(); daftar_lampiran_pdf.close(); final_pdf_buffer.close()
-    
-    return response
+    finally:
+        # --- TAHAP 8: BERSIHKAN SEMUA STREAM ---
+        print(f"Menutup {len(streams_to_close)} stream memori...")
+        for stream in streams_to_close:
+            try:
+                stream.close()
+            except Exception as e:
+                print(f"Gagal menutup stream: {e}")
+        
+        # Tutup juga buffer akhir jika sudah dibuat
+        if 'final_pdf_buffer' in locals() and final_pdf_buffer and not final_pdf_buffer.closed:
+            final_pdf_buffer.close()
