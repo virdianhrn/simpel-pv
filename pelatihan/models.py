@@ -8,6 +8,10 @@ from django.contrib.auth import get_user_model
 from konfigurasi.models import StatusDokumen, Kejuruan, TahunAnggaran
 
 User = get_user_model()
+def generate_short_uuid():
+    """Membuat ID unik yang pendek dan aman untuk default primary key."""
+    return shortuuid.uuid()
+
 class Pelatihan(models.Model):
     class JenisPelatihan(models.TextChoices):
         BOARDING = 'BOARDING', 'Boarding'
@@ -22,7 +26,7 @@ class Pelatihan(models.Model):
     id = models.CharField(
         primary_key=True,
         max_length=22,
-        default=shortuuid.uuid,
+        default=generate_short_uuid,
         editable=False
     )
     kejuruan = models.ForeignKey(Kejuruan, on_delete=models.PROTECT, related_name='pelatihan')
@@ -204,7 +208,7 @@ class Instruktur(models.Model):
     id = models.CharField(
         primary_key=True,
         max_length=22,
-        default=shortuuid.uuid,
+        default=generate_short_uuid,
         editable=False
     )
     nama = models.CharField(max_length=255, verbose_name="Nama Lengkap Instruktur")
@@ -230,7 +234,7 @@ class PelatihanInstruktur(models.Model):
     id = models.CharField(
         primary_key=True,
         max_length=22,
-        default=shortuuid.uuid,
+        default=generate_short_uuid,
         editable=False
     )
     pelatihan = models.ForeignKey(
@@ -292,7 +296,7 @@ class PelatihanLampiran(models.Model):
     id = models.CharField(
         primary_key=True,
         max_length=22,
-        default=shortuuid.uuid,
+        default=generate_short_uuid,
         editable=False
     )
     pelatihan = models.ForeignKey(Pelatihan, on_delete=models.CASCADE,
