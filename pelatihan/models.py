@@ -1,4 +1,4 @@
-import os, shortuuid
+import os
 
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -6,6 +6,7 @@ from django.utils.text import slugify
 from django.contrib.auth import get_user_model
 
 from konfigurasi.models import StatusDokumen, Kejuruan, TahunAnggaran
+from konfigurasi.utils import generate_short_uuid
 
 User = get_user_model()
 class Pelatihan(models.Model):
@@ -22,7 +23,7 @@ class Pelatihan(models.Model):
     id = models.CharField(
         primary_key=True,
         max_length=22,
-        default=shortuuid.uuid,
+        default=generate_short_uuid,
         editable=False
     )
     kejuruan = models.ForeignKey(Kejuruan, on_delete=models.PROTECT, related_name='pelatihan')
@@ -204,7 +205,7 @@ class Instruktur(models.Model):
     id = models.CharField(
         primary_key=True,
         max_length=22,
-        default=shortuuid.uuid,
+        default=generate_short_uuid,
         editable=False
     )
     nama = models.CharField(max_length=255, verbose_name="Nama Lengkap Instruktur")
@@ -230,7 +231,7 @@ class PelatihanInstruktur(models.Model):
     id = models.CharField(
         primary_key=True,
         max_length=22,
-        default=shortuuid.uuid,
+        default=generate_short_uuid,
         editable=False
     )
     pelatihan = models.ForeignKey('Pelatihan', on_delete=models.CASCADE, related_name='instruktur_set')
@@ -262,7 +263,7 @@ def upload_to_dokumen(instance, filename):
     extension = os.path.splitext(filename)[1]
     # Use the human-readable name for better debugging
     doc_name_slug = slugify(instance.get_nama_display())
-    new_filename = f"{doc_name_slug}-{shortuuid.uuid()}{extension}"
+    new_filename = f"{doc_name_slug}-{generate_short_uuid()}{extension}"
     return f'dokumen/{id_pelatihan}/{new_filename}'
 
 class PelatihanLampiran(models.Model):
@@ -286,7 +287,7 @@ class PelatihanLampiran(models.Model):
     id = models.CharField(
         primary_key=True,
         max_length=22,
-        default=shortuuid.uuid,
+        default=generate_short_uuid,
         editable=False
     )
     pelatihan = models.ForeignKey(Pelatihan, on_delete=models.CASCADE,
