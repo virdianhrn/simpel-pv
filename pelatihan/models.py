@@ -1,4 +1,4 @@
-import os, shortuuid
+import os, shortuuid, uuid
 
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -8,9 +8,6 @@ from django.contrib.auth import get_user_model
 from konfigurasi.models import StatusDokumen, Kejuruan, TahunAnggaran
 
 User = get_user_model()
-def generate_short_uuid():
-    """Membuat ID unik yang pendek dan aman untuk default primary key."""
-    return shortuuid.uuid()
 
 class Pelatihan(models.Model):
     class JenisPelatihan(models.TextChoices):
@@ -23,12 +20,7 @@ class Pelatihan(models.Model):
    
 
     # --- Isian Awal ---
-    id = models.CharField(
-        primary_key=True,
-        max_length=22,
-        default=generate_short_uuid,
-        editable=False
-    )
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     kejuruan = models.ForeignKey(Kejuruan, on_delete=models.PROTECT, related_name='pelatihan')
     judul = models.CharField(max_length=255, verbose_name="Program Pelatihan")
     paket_ke = models.PositiveSmallIntegerField(verbose_name="Paket Ke-")
@@ -205,12 +197,7 @@ class Instruktur(models.Model):
     """
     Menyimpan data master untuk Instruktur.
     """
-    id = models.CharField(
-        primary_key=True,
-        max_length=22,
-        default=generate_short_uuid,
-        editable=False
-    )
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     nama = models.CharField(max_length=255, verbose_name="Nama Lengkap Instruktur")
     kejuruan = models.ForeignKey(
         Kejuruan, 
@@ -231,12 +218,7 @@ class PelatihanInstruktur(models.Model):
     """
     Intermediary model to link multiple instructors and their subjects to a single Pelatihan.
     """
-    id = models.CharField(
-        primary_key=True,
-        max_length=22,
-        default=generate_short_uuid,
-        editable=False
-    )
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     pelatihan = models.ForeignKey(
         'Pelatihan',
         on_delete=models.CASCADE,
@@ -260,7 +242,6 @@ class PelatihanInstruktur(models.Model):
 
     def __str__(self):
         return f"{self.instruktur.nama} - {self.pelatihan.judul}"
-
 
 
 def upload_to_dokumen(instance, filename):
@@ -293,12 +274,7 @@ class PelatihanLampiran(models.Model):
         FOTOCOPY_SERTIFIKAT = '13', 'Fotocopy Sertifikat Pelatihan'
         DOKUMENTASI = '14', 'Dokumentasi Kegiatan'
 
-    id = models.CharField(
-        primary_key=True,
-        max_length=22,
-        default=generate_short_uuid,
-        editable=False
-    )
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     pelatihan = models.ForeignKey(Pelatihan, on_delete=models.CASCADE,
                                   related_name='dokumen')
 
