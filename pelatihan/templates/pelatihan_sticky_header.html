@@ -1,0 +1,67 @@
+{% comment %}
+    This partial template displays the sticky header for a 'pelatihan' object.
+    It requires a 'pelatihan' object to be in the context.
+    The 'user' object is also used for the admin-only PIC view.
+{% endcomment %}
+
+<div class="page-header pt-7 bg-white-blue"></div>
+<div class="container sticky-top">
+    <div class="card">
+        <div class="card-body">
+            <!-- Row 1: Program Pelatihan -->
+            <div class="d-flex justify-content-center flex-wrap gap-4 mb-3"> 
+                <div class="h4">
+                    <strong>Program:</strong> 
+                    {{ pelatihan.judul }}
+                    {% if pelatihan.paket_ke > 1 %}
+                        {{ pelatihan.paket_ke }}
+                    {% endif %}
+                </div>
+            </div>
+
+            <hr />
+
+            <!-- Row 2: Kejuruan, PIC, Tanggal Rencana -->
+            <div class="d-flex justify-content-evenly flex-wrap gap-4 mb-3 text-lg"> 
+                <div><strong>Kejuruan:</strong> {{ pelatihan.kejuruan }}</div>
+                {% if user.is_admin %}
+                <div><strong>PIC:</strong> {{ pelatihan.penyelenggara }}</div>
+                {% endif %}
+                <div><strong>Rencana Tgl Mulai:</strong> {{ pelatihan.tanggal_mulai_rencana|date:"d M Y" }}</div>
+                <div><strong>Rencana Tgl Selesai:</strong> {{ pelatihan.tanggal_selesai_rencana|date:"d M Y" }}</div>
+            </div>
+
+            <hr />
+
+            <!-- NEW: Progress Upload (Uploaded) -->
+            <h6 class="mt-4 mb-2">Progress Upload Dokumen: {{ pelatihan.progress_upload }}%</h6>
+            <div class="progress" style="height: 15px;">
+                <div 
+                    class="progress-bar bg-info" 
+                    role="progressbar" 
+                    style="width: {{ pelatihan.progress_upload }}%;" 
+                    aria-valuenow="{{ pelatihan.progress_upload }}" 
+                    aria-valuemin="0" 
+                    aria-valuemax="100"
+                >
+                    {{ pelatihan.progress_upload }}%
+                </div>
+            </div>
+
+            <!-- Progress Laporan (Verified) -->
+            <h6 class="mt-4 mb-2">Progress Verifikasi Laporan: {{ pelatihan.progress_laporan }}%</h6>
+            <div class="progress" style="height: 15px;">
+                <div 
+                    class="progress-bar bg-success" 
+                    role="progressbar" 
+                    style="width: {{ pelatihan.progress_laporan }}%;" 
+                    aria-valuenow="{{ pelatihan.progress_laporan }}" 
+                    aria-valuemin="0" 
+                    aria-valuemax="100"
+                >
+                    {{ pelatihan.progress_laporan }}%
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

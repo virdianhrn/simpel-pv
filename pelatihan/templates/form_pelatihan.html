@@ -10,49 +10,7 @@
 {% endblock navbar %}
 
 {% block page_header_content %}
-<div class="page-header pt-7 bg-white-blue"></div>
-<div class="container sticky-top">
-    <div class="card">
-        <div class="card-body">
-            <div class="d-flex justify-content-center flex-wrap gap-4 mb-3">
-                <div class="h4">
-                    <strong>Isi Laporan Program</strong> 
-                    {{ pelatihan.judul }}
-                    {% if pelatihan.paket_ke > 1 %}
-                        {{ pelatihan.paket_ke }}
-                    {% endif %}
-                </div>
-            </div>
-
-            <hr />
-
-            <div class="d-flex justify-content-evenly flex-wrap gap-4 mb-3 text-lg">
-                <div><strong>Kejuruan:</strong> {{ pelatihan.kejuruan }}</div>
-                {% if user.is_admin %}
-                <div><strong>PIC:</strong> {{ pelatihan.penyelenggara }}</div>
-                {% endif %}
-                <div><strong>Rencana tanggal Mulai:</strong> {{ pelatihan.tanggal_mulai_rencana|date:"d M Y" }}</div>
-                <div><strong>Rencana tanggal Selesai:</strong> {{ pelatihan.tanggal_selesai_rencana|date:"d M Y" }}</div>
-            </div>
-
-            <hr />
-
-            <h6 class="mt-4 mb-2">Progress Pengisian Dokumen: {{ pelatihan.progress_laporan }}%</h6>
-            <div class="progress" style="height: 15px;">
-                <div 
-                    class="progress-bar bg-success" 
-                    role="progressbar" 
-                    style="width: {{ pelatihan.progress_laporan }}%;" 
-                    aria-valuenow="{{ pelatihan.progress_laporan }}" 
-                    aria-valuemin="0" 
-                    aria-valuemax="100"
-                >
-                    {{ pelatihan.progress_laporan }}%
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+{% include 'pelatihan_sticky_header.html' %}
 {% endblock page_header_content %}
 
 {% block content %}
@@ -114,6 +72,11 @@
                                 {{ form.tempat_pelaksanaan }}
                                 {% for error in form.tempat_pelaksanaan.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
                             </div>
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.nama_lembaga_pelaksana.id_for_label }}" class="form-label">{{ form.nama_lembaga_pelaksana.label }}</label>
+                                {{ form.nama_lembaga_pelaksana }}
+                                {% for error in form.nama_lembaga_pelaksana.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.tanggal_mulai_rencana.id_for_label }}" class="form-label">{{ form.tanggal_mulai_rencana.label }}</label>
                                 {{ form.tanggal_mulai_rencana }}
@@ -133,6 +96,11 @@
                                 <label for="{{ form.tanggal_selesai_aktual.id_for_label }}" class="form-label">{{ form.tanggal_selesai_aktual.label }}</label>
                                 {{ form.tanggal_selesai_aktual }}
                                 {% for error in form.tanggal_selesai_aktual.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.status.id_for_label }}" class="form-label">{{ form.status.label }}</label>
+                                {{ form.status }}
+                                {% for error in form.status.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label for="{{ form.durasi_jp.id_for_label }}" class="form-label">{{ form.durasi_jp.label }}</label>

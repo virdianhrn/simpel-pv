@@ -23,8 +23,8 @@ class PelatihanForm(forms.ModelForm):
     class Meta:
         model = Pelatihan
         fields = [
-            'judul', 'kejuruan', 'jenis_pelatihan', 'penyelenggara', 'metode',
-            'tempat_pelaksanaan', 'tanggal_mulai_rencana', 'tanggal_selesai_rencana',
+            'judul', 'kejuruan', 'jenis_pelatihan', 'penyelenggara', 'metode', 'nama_lembaga_pelaksana',
+            'tempat_pelaksanaan', 'tanggal_mulai_rencana', 'tanggal_selesai_rencana', 'status',
             'tanggal_mulai_aktual', 'tanggal_selesai_aktual', 'durasi_jp',
             'jam_per_hari', 'waktu_pelatihan', 'tahun_anggaran', 'paket_ke',
             'no_sk', 'tanggal_sk', 'tentang_sk', 'jabatan_penandatangan',
@@ -41,10 +41,12 @@ class PelatihanForm(forms.ModelForm):
             'jenis_pelatihan': forms.Select(attrs={'class': 'form-select'}),
             'metode': forms.Select(attrs={'class': 'form-select'}),
             'tempat_pelaksanaan': forms.TextInput(attrs={'class': 'form-control'}),
+            'nama_lembaga_pelaksana': forms.TextInput(attrs={'class': 'form-control'}),
             'tanggal_mulai_rencana': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'tanggal_selesai_rencana': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'tanggal_mulai_aktual': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'tanggal_selesai_aktual': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'status': forms.Select(attrs={'class': 'form-select'}),
             'durasi_jp': forms.NumberInput(attrs={'class': 'form-control'}),
             'jam_per_hari': forms.NumberInput(attrs={'class': 'form-control'}),
             'waktu_pelatihan': forms.TextInput(attrs={'class': 'form-control'}),

@@ -4,8 +4,9 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.text import slugify
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 
-from konfigurasi.models import StatusDokumen, Kejuruan, TahunAnggaran
+from konfigurasi.models import StatusDokumen, Kejuruan, TahunAnggaran, StatusPelatihan
 from konfigurasi.utils import generate_short_uuid
 
 User = get_user_model()
@@ -15,8 +16,8 @@ class Pelatihan(models.Model):
         NON_BOARDING = 'NON_BOARDING', 'Non-Boarding'
 
     class MetodePelatihan(models.TextChoices):
-        INSTITUTIONAL = 'INSTITUTIONAL', 'Institutional'
-        MTU = 'MTU', 'MTU'
+        IN = 'IN', 'Dalam Balai'
+        OUT = 'OUT', 'Luar Balai'
    
 
     # --- Isian Awal ---
@@ -41,10 +42,17 @@ class Pelatihan(models.Model):
 
     # --- Detail Pelaksanaan ---
     jenis_pelatihan = models.CharField(max_length=15, choices=JenisPelatihan.choices, verbose_name="Jenis Pelatihan", blank=True)
-    metode = models.CharField(max_length=15, choices=MetodePelatihan.choices, verbose_name="Metode Pelatihan", blank=True)
+    metode = models.CharField(max_length=3, choices=MetodePelatihan.choices, verbose_name="Metode Pelatihan", blank=True)
     tempat_pelaksanaan = models.CharField(max_length=255, blank=True)
+    nama_lembaga_pelaksana = models.CharField(max_length=255, blank=True)
     tanggal_mulai_aktual = models.DateField(verbose_name="Tanggal Mulai (Aktual)", null=True, blank=True)
     tanggal_selesai_aktual = models.DateField(verbose_name="Tanggal Selesai (Aktual)", null=True, blank=True)
+    status = models.ForeignKey(
+        StatusPelatihan, 
+        on_delete=models.PROTECT, 
+        related_name='status',
+        verbose_name="Status Pelatihan",
+        default=StatusPelatihan.BELUM_BERJALAN)
     durasi_jp = models.PositiveSmallIntegerField(verbose_name="Durasi Pelatihan (JP)", null=True, blank=True)
     jam_per_hari = models.PositiveSmallIntegerField(verbose_name="Jam Pelajaran per Hari", null=True, blank=True)
     waktu_pelatihan = models.CharField(
@@ -98,6 +106,13 @@ class Pelatihan(models.Model):
         verbose_name="Progres Laporan (%)"
     )
 
+    progress_upload = models.PositiveIntegerField(
+        default=0, 
+        editable=False, 
+        db_index=True, # Tambahkan index untuk mempercepat filter
+        verbose_name="Progres Upload (%)"
+    )
+
     @property
     def rata_rata_gender_display(self):
         laki = self.jumlah_peserta_laki
@@ -117,82 +132,131 @@ class Pelatihan(models.Model):
 
         return durasi_jp // jam_per_hari if jam_per_hari else 0
 
-    # def clean(self):
-    #     super().clean()
-    #     if self.tanggal_selesai and self.tanggal_mulai and self.tanggal_selesai < self.tanggal_mulai:
-    #         raise ValidationError("Tanggal selesai harus setelah tanggal mulai")
-
     def save(self, *args, **kwargs):
-        # Cek apakah 'save' ini HANYA untuk update progres, agar tidak rekursif
-        is_progress_update = 'update_fields' in kwargs and 'progress_laporan' in kwargs['update_fields'] and len(kwargs['update_fields']) == 1
+        is_progress_update = False
+        if 'update_fields' in kwargs:
+            update_fields = kwargs['update_fields']
+            # Cek apakah HANYA field progres yang sedang disimpan
+            allowed_fields = {'progress_laporan', 'progress_upload'}
+            if all(field in allowed_fields for field in update_fields) and update_fields:
+                is_progress_update = True
 
         super().save(*args, **kwargs) # Simpan data utama
         
-        # Jika ini BUKAN save progres, panggil update progres
         if not is_progress_update:
-            self.update_progress()
+            self.update_progress_verifikasi()
+            self.update_progress_upload()
 
-    def update_progress(self):
-        """Menghitung progres baru dan menyimpannya ke database."""
+    def update_progress_verifikasi(self):
+        """Menghitung progres VERIFIKASI baru dan menyimpannya ke database."""
         new_progress = self.calculate_persentase_progress()
         if self.progress_laporan != new_progress:
             self.progress_laporan = new_progress
-            # Gunakan update_fields untuk hanya menyimpan field ini
-            # dan mencegah save() rekursif tanpa akhir
             self.save(update_fields=['progress_laporan'])
 
+    def update_progress_upload(self):
+        """Menghitung progres UPLOAD baru dan menyimpannya ke database."""
+        new_progress = self.calculate_persentase_upload()
+        if self.progress_upload != new_progress:
+            self.progress_upload = new_progress
+            self.save(update_fields=['progress_upload'])
+
     def calculate_persentase_progress(self):
-        dokumen_queryset = self.dokumen.all() # Ambil queryset sekali saja
+        """Menghitung progres VERIFIKASI (hanya TERVERIFIKASI)."""
+        dokumen_queryset = self.dokumen.all()
         total_dokumen = dokumen_queryset.count()
-        dokumen_terverifikasi = dokumen_queryset.filter(status_id=StatusDokumen.TERVERIFIKASI).count()
+        dokumen_terverifikasi = dokumen_queryset.filter(
+            status_id=StatusDokumen.TERVERIFIKASI
+        ).count()
 
-        # --- 2. Tentukan Field Laporan dan Hitung Progressnya ---
-        # Daftar nama field laporan yang akan dicek
-        laporan_fields_to_check = [
-            'jenis_pelatihan', 'metode', 'tempat_pelaksanaan', 
-            'tanggal_mulai_aktual', 'tanggal_selesai_aktual', 'durasi_jp',
-            'jam_per_hari', 'waktu_pelatihan', 
-            'no_sk', 'tanggal_sk', 'tentang_sk', 'jabatan_penandatangan',
-            'nama_penandatangan', 'nip_penandatangan', 'tanggal_penandatangan',
-            'jumlah_peserta_laki', 'jumlah_peserta_perempuan', 'jumlah_lulus',
-            'jumlah_belum_lulus', 'alasan_belum_lulus', 'rata_rata_pendidikan',
-            'rata_rata_usia', 'rata_rata_domisili'
-        ]
-        total_laporan_fields = len(laporan_fields_to_check)
-        
-        laporan_fields_terisi = 0
-        for field_name in laporan_fields_to_check:
-            # getattr(self, field_name, None) mengambil nilai field berdasarkan namanya
-            # Cek apakah field tersebut memiliki nilai (tidak None dan tidak string kosong)
-            value = getattr(self, field_name, None)
-            if value is not None and value != '':
-                laporan_fields_terisi += 1
+        # --- MODIFIED LOGIC ---
+        # Laporan fields and instructor check only apply if the training is NOT 'Belum Berjalan'
+        if self.status_id == StatusPelatihan.BELUM_BERJALAN:
+            total_laporan_fields = 0
+            laporan_fields_terisi = 0
+            total_instruktur_requirement = 0
+            instruktur_terisi = 0
+        else:
+            # This is the original logic
+            laporan_fields_to_check = [
+                'jenis_pelatihan', 'metode', 'tempat_pelaksanaan', 'nama_lembaga_pelaksana',
+                'tanggal_mulai_aktual', 'tanggal_selesai_aktual', 'durasi_jp',
+                'jam_per_hari', 'waktu_pelatihan', 'no_sk', 'tanggal_sk', 
+                'tentang_sk', 'jabatan_penandatangan', 'nama_penandatangan', 
+                'nip_penandatangan', 'tanggal_penandatangan', 'jumlah_peserta_laki', 
+                'jumlah_peserta_perempuan', 'jumlah_lulus', 'jumlah_belum_lulus', 
+                'alasan_belum_lulus', 'rata_rata_pendidikan', 'rata_rata_usia', 
+                'rata_rata_domisili'
+            ]
+            total_laporan_fields = len(laporan_fields_to_check)
+            
+            laporan_fields_terisi = 0
+            for field_name in laporan_fields_to_check:
+                value = getattr(self, field_name, None)
+                if value is not None and value != '':
+                    laporan_fields_terisi += 1
 
-        total_instruktur_requirement = 1
-        # Cek apakah ada minimal satu instruktur terkait
-        # self.instruktur_set merujuk pada related_name di InstrukturPelatihan
-        instruktur_terisi = 1 if self.instruktur_set.exists() else 0
+            total_instruktur_requirement = 1
+            instruktur_terisi = 1 if self.instruktur_set.exists() else 0
+        # --- END MODIFIED LOGIC ---
 
-        # --- 3. Cek Keberadaan Instruktur ---
-        # Menambah 1 item ke total requirement (minimal 1 instruktur)
-        total_instruktur_requirement = 1
-        # Cek apakah ada minimal satu instruktur terkait
-        # self.instruktur_set merujuk pada related_name di InstrukturPelatihan
-        instruktur_terisi = 1 if self.instruktur_set.exists() else 0
-
-        # --- 4. Hitung Total Keseluruhan ---
         total_items = total_dokumen + total_laporan_fields + total_instruktur_requirement
-
-        # Hindari pembagian dengan nol
         if total_items == 0:
-            return 0
+            # If no documents are required and status is 'Belum Berjalan', 
+            # we can consider it 100% "ready" (or 0% "started").
+            # Let's return 0 unless total_dokumen is also 0.
+            return 100 if total_dokumen == 0 else 0
 
         total_selesai = dokumen_terverifikasi + laporan_fields_terisi + instruktur_terisi
-
-        # --- 5. Hitung Persentase ---
         percentage = (total_selesai / total_items) * 100
+        return int(percentage)
 
-        # Kembalikan sebagai integer
+    def calculate_persentase_upload(self):
+        """Menghitung progres UPLOAD (TERVERIFIKASI atau DALAM PROSES)."""
+        dokumen_queryset = self.dokumen.all()
+        total_dokumen = dokumen_queryset.count()
+        
+        dokumen_diupload = dokumen_queryset.filter(
+            Q(status_id=StatusDokumen.TERVERIFIKASI) |
+            Q(status_id=StatusDokumen.DALAM_PROSES_VERIFIKASI)
+        ).count()
+
+        # --- MODIFIED LOGIC (Mirrored) ---
+        if self.status_id == StatusPelatihan.BELUM_BERJALAN:
+            total_laporan_fields = 0
+            laporan_fields_terisi = 0
+            total_instruktur_requirement = 0
+            instruktur_terisi = 0
+        else:
+            # This is the original logic
+            laporan_fields_to_check = [
+                'jenis_pelatihan', 'metode', 'tempat_pelaksanaan', 'nama_lembaga_pelaksana',
+                'tanggal_mulai_aktual', 'tanggal_selesai_aktual', 'durasi_jp',
+                'jam_per_hari', 'waktu_pelatihan', 'no_sk', 'tanggal_sk', 
+                'tentang_sk', 'jabatan_penandatangan', 'nama_penandatangan', 
+                'nip_penandatangan', 'tanggal_penandatangan', 'jumlah_peserta_laki', 
+                'jumlah_peserta_perempuan', 'jumlah_lulus', 'jumlah_belum_lulus', 
+                'alasan_belum_lulus', 'rata_rata_pendidikan', 'rata_rata_usia', 
+                'rata_rata_domisili'
+            ]
+            total_laporan_fields = len(laporan_fields_to_check)
+            
+            laporan_fields_terisi = 0
+            for field_name in laporan_fields_to_check:
+                value = getattr(self, field_name, None)
+                if value is not None and value != '':
+                    laporan_fields_terisi += 1
+
+            total_instruktur_requirement = 1
+            instruktur_terisi = 1 if self.instruktur_set.exists() else 0
+        # --- END MODIFIED LOGIC ---
+
+        total_items = total_dokumen + total_laporan_fields + total_instruktur_requirement
+        if total_items == 0:
+            return 100 if total_dokumen == 0 else 0
+
+        total_selesai = dokumen_diupload + laporan_fields_terisi + instruktur_terisi
+        percentage = (total_selesai / total_items) * 100
         return int(percentage)
 
     def __str__(self):
@@ -325,16 +389,18 @@ class PelatihanLampiran(models.Model):
     
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # Panggil update_progress di Pelatihan induk
+        # Panggil update_progress_verifikasi di Pelatihan induk
         if self.pelatihan:
-            self.pelatihan.update_progress()
+            self.pelatihan.update_progress_verifikasi()
+            self.pelatihan.update_progress_upload()
 
     def delete(self, *args, **kwargs):
         pelatihan = self.pelatihan
         super().delete(*args, **kwargs)
-        # Panggil update_progress setelah dihapus
+        # Panggil update_progress_verifikasi setelah dihapus
         if pelatihan:
-            pelatihan.update_progress()
+            pelatihan.update_progress_verifikasi()
+            self.pelatihan.update_progress_upload()
 
     @classmethod
     def get_all_document_codes(cls):

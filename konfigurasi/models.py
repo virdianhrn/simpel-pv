@@ -88,6 +88,24 @@ class StatusDokumen(models.Model):
     def __str__(self):
         return self.nama
 
+class StatusPelatihan(models.Model):
+    # Define constants for the primary keys
+    BELUM_BERJALAN = 1
+    SDANG_BERJALAN = 2
+    SELESAI = 3
+    DIBATALKAN = 4
+
+    id = models.PositiveSmallIntegerField(primary_key=True)
+    nama = models.CharField(max_length=50, unique=True)
+    keterangan = models.TextField(blank=True, help_text="Deskripsi singkat mengenai status ini.")
+
+    class Meta:
+        verbose_name = "Status Pelatihan"
+        verbose_name_plural = "Daftar Status Pelatihan"
+
+    def __str__(self):
+        return self.nama
+
 class Kejuruan(models.Model):
     id = models.CharField(primary_key=True, max_length=3, help_text="Contoh: TIK, LAS")
     nama = models.CharField(max_length=255, unique=True)
