@@ -91,7 +91,7 @@ class StatusDokumen(models.Model):
 class StatusPelatihan(models.Model):
     # Define constants for the primary keys
     BELUM_BERJALAN = 1
-    SDANG_BERJALAN = 2
+    SEDANG_BERJALAN = 2
     SELESAI = 3
     DIBATALKAN = 4
 

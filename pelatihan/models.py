@@ -132,6 +132,22 @@ class Pelatihan(models.Model):
 
         return durasi_jp // jam_per_hari if jam_per_hari else 0
 
+    @property
+    def is_belum_berjalan(self):
+        return self.status_id == StatusPelatihan.BELUM_BERJALAN
+
+    @property
+    def is_sedang_berjalan(self):
+        return self.status_id == StatusPelatihan.SEDANG_BERJALAN
+
+    @property
+    def is_selesai(self):
+        return self.status_id == StatusPelatihan.SELESAI
+
+    @property
+    def is_dibatalkan(self):
+        return self.status_id == StatusPelatihan.DIBATALKAN
+
     def save(self, *args, **kwargs):
         is_progress_update = False
         if 'update_fields' in kwargs:
