@@ -1,38 +1,39 @@
+import json
 from django.shortcuts import render
-from django.db.models import Count, Sum, Q
+from django.db.models import Count, Sum, Q, Prefetch, F, Value, FloatField, Avg
+from django.db.models.functions import Coalesce 
 from django.contrib.auth.decorators import login_required
 from accounts.decorators import admin_required
 from pelatihan.models import Pelatihan
-from konfigurasi.models import TahunAnggaran, Kejuruan, Role
+from konfigurasi.models import TahunAnggaran, Kejuruan, Role, StatusPelatihan
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-@admin_required # Dasbor ini mungkin hanya untuk Admin
+@admin_required 
 def dashboard_evaluasi(request):
     context = {}
     tahun_aktif = TahunAnggaran.get_aktif()
 
     # --- 1. Grafik: Target vs Realisasi Paket (5 Tahun Terakhir) ---
     tahuns = TahunAnggaran.objects.annotate(
-        # Hitung pelatihan HANYA JIKA progress_laporan adalah 100
-        realisasi=Count(
-            'pelatihan', 
-            filter=Q(pelatihan__progress_laporan=100)
+        realisasi_desimal=Coalesce(
+            Sum(
+                F('pelatihan__progress_laporan') / 100.0, 
+                output_field=FloatField()
+            ),
+            Value(0.0, output_field=FloatField()) 
         )
     ).order_by('-tahun')[:5]
     
-    # Balik urutannya agar kronologis (tahun terlama ke terbaru)
     tahuns_list = reversed(list(tahuns)) 
-    
     labels_target_vs_realisasi = []
     data_target = []
     data_realisasi = []
-    
     for ta in tahuns_list:
         labels_target_vs_realisasi.append(ta.tahun)
         data_target.append(ta.target)
-        data_realisasi.append(ta.realisasi)
+        data_realisasi.append(round(ta.realisasi_desimal, 2)) 
 
     context['chart_target_realisasi_labels'] = labels_target_vs_realisasi
     context['chart_target_realisasi_data_target'] = data_target
@@ -42,11 +43,9 @@ def dashboard_evaluasi(request):
     labels_pic = []
     data_pic = []
     if tahun_aktif:
-        # Ambil Penyelenggara yang memiliki setidaknya 1 paket di tahun aktif
         pics = User.objects.filter(role__id=Role.PENYELENGGARA).annotate(
             jumlah_paket=Count('pelatihan', filter=Q(pelatihan__tahun_anggaran=tahun_aktif))
         ).filter(jumlah_paket__gt=0).order_by('-jumlah_paket')
-        
         for pic in pics:
             labels_pic.append(pic.get_full_name() or pic.username)
             data_pic.append(pic.jumlah_paket)
@@ -56,12 +55,11 @@ def dashboard_evaluasi(request):
 
     # --- 3. Grafik: Total JP per Tahun Anggaran (5 Tahun Terakhir) ---
     tahuns_jp = TahunAnggaran.objects.annotate(
-        total_jp=Sum('pelatihan__durasi_jp') # Asumsi field durasi Anda adalah durasi_jp
-    ).filter(total_jp__gt=0).order_by('-tahun')[:5]
+        total_jp=Coalesce(Sum('pelatihan__durasi_jp'), 0) 
+    ).order_by('-tahun')[:5]
     
     labels_jp = []
     data_jp = []
-    
     for ta in reversed(list(tahuns_jp)):
         labels_jp.append(ta.tahun)
         data_jp.append(ta.total_jp)
@@ -76,7 +74,6 @@ def dashboard_evaluasi(request):
         kejuruans = Kejuruan.objects.annotate(
             jumlah_paket=Count('pelatihan', filter=Q(pelatihan__tahun_anggaran=tahun_aktif))
         ).filter(jumlah_paket__gt=0).order_by('-jumlah_paket')
-        
         for k in kejuruans:
             labels_kejuruan.append(k.nama)
             data_kejuruan.append(k.jumlah_paket)
@@ -84,7 +81,43 @@ def dashboard_evaluasi(request):
     context['chart_kejuruan_labels'] = labels_kejuruan
     context['chart_kejuruan_data'] = data_kejuruan
     
-    # Kirim tahun_aktif untuk referensi di template
+    # --- 5. [MODIFIED] Grafik: Rata-rata Progress Keseluruhan (Tahun Ini) ---
+    context['chart_overall_progress_data'] = None # Default to None
+    if tahun_aktif:
+        # Aggregate the averages for ALL trainings in the active year
+        overall_progress = Pelatihan.objects.filter(
+            tahun_anggaran=tahun_aktif
+        ).aggregate(
+            total_avg_upload=Avg('progress_upload'),
+            total_avg_laporan=Avg('progress_laporan')
+        )
+        
+        # Check if data was returned (it might be None if no trainings exist)
+        if overall_progress.get('total_avg_upload') is not None:
+            context['chart_overall_progress_data'] = {
+                'upload': round(overall_progress['total_avg_upload'], 1),
+                'laporan': round(overall_progress['total_avg_laporan'], 1)
+            }
+    
+    # --- 6. Grafik: Distribusi Status Pelatihan (Tahun Ini) ---
+    labels_status = []
+    data_status = []
+    if tahun_aktif:
+        status_dist = Pelatihan.objects.filter(
+            tahun_anggaran=tahun_aktif
+        ).values(
+            'status__nama'
+        ).annotate(
+            count=Count('id')
+        ).order_by('-count')
+        
+        for s in status_dist:
+            labels_status.append(s['status__nama'])
+            data_status.append(s['count'])
+    
+    context['chart_status_labels'] = labels_status
+    context['chart_status_data'] = data_status
+    
     context['tahun_aktif'] = tahun_aktif
     
     return render(request, 'dashboard_evaluasi.html', context)

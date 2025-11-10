@@ -23,13 +23,16 @@
 {% endblock page_header_content %}
 
 {% block content %}
-<div class="container mt-2 pb-5">
+<div class="container mt-4 pb-5">
+    
+    <!-- Baris 1: Target vs Realisasi & Total JP -->
     <div class="row">
-        <div class="col-lg-7 mb-4">
-            <div class="card">
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
                 <div class="card-header"><h5 class="mb-0">Target vs Realisasi Paket (5 Tahun Terakhir)</h5></div>
                 <div class="card-body">
-                    {% if chart_target_realisasi_labels != '[]' %}
+                    <!-- FIXED: Correct 'if' check (checks if list is not empty) -->
+                    {% if chart_target_realisasi_labels %}
                         <canvas id="chartTargetRealisasi" 
                                 data-labels="{{ chart_target_realisasi_labels|safe }}"
                                 data-target="{{ chart_target_realisasi_data_target|safe }}"
@@ -41,11 +44,12 @@
                 </div>
             </div>
         </div>
-        <div class="col-lg-5 mb-4">
-            <div class="card">
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
                 <div class="card-header"><h5 class="mb-0">Total Jam Pelajaran (5 Tahun Terakhir)</h5></div>
                 <div class="card-body">
-                    {% if chart_jp_labels != '[]' %}
+                    <!-- FIXED: Correct 'if' check -->
+                    {% if chart_jp_labels %}
                         <canvas id="chartTotalJP"
                                 data-labels="{{ chart_jp_labels|safe }}"
                                 data-jp="{{ chart_jp_data|safe }}">
@@ -58,12 +62,14 @@
         </div>
     </div>
 
+    <!-- Baris 2: PIC & Kejuruan (Tahun Aktif) -->
     <div class="row">
         <div class="col-lg-6 mb-4">
-            <div class="card">
+            <div class="card h-100">
                 <div class="card-header"><h5 class="mb-0">Distribusi Paket per PIC (T.A. {{ tahun_aktif.tahun|default:'N/A' }})</h5></div>
-                <div class="card-body">
-                    {% if chart_pic_labels != '[]' %}
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    <!-- FIXED: Correct 'if' check -->
+                    {% if chart_pic_labels %}
                         <canvas id="chartPIC"
                                 data-labels="{{ chart_pic_labels|safe }}"
                                 data-paket="{{ chart_pic_data|safe }}">
@@ -75,16 +81,53 @@
             </div>
         </div>
         <div class="col-lg-6 mb-4">
-            <div class="card">
+            <div class="card h-100">
                 <div class="card-header"><h5 class="mb-0">Distribusi Paket per Kejuruan (T.A. {{ tahun_aktif.tahun|default:'N/A' }})</h5></div>
-                <div class="card-body">
-                    {% if chart_kejuruan_labels != '[]' %}
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    <!-- FIXED: Correct 'if' check -->
+                    {% if chart_kejuruan_labels %}
                         <canvas id="chartKejuruan"
                                 data-labels="{{ chart_kejuruan_labels|safe }}"
                                 data-paket="{{ chart_kejuruan_data|safe }}">
                         </canvas>
                     {% else %}
-                        <p class="text-muted text-center">Belum ada data pelatihan untuk kejuruan di tahun ini.</p>
+                         <p class="text-muted text-center">Belum ada data pelatihan untuk kejuruan di tahun ini.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Baris 3: [MODIFIED] Overall Progress & Status Pelatihan -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header"><h5 class="mb-0">Rata-Rata Progress Pelatihan (T.A. {{ tahun_aktif.tahun|default:'N/A' }})</h5></div>
+                <div class="card-body">
+                    <!-- FIXED: Correct 'if' check -->
+                    {% if chart_overall_progress_data %}
+                        <canvas id="chartOverallProgress"
+                                data-upload="{{ chart_overall_progress_data.upload }}"
+                                data-laporan="{{ chart_overall_progress_data.laporan }}">
+                        </canvas>
+                    {% else %}
+                        <p class="text-muted text-center">Belum ada data progress untuk dihitung di tahun ini.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header"><h5 class="mb-0">Distribusi Status Pelatihan (T.A. {{ tahun_aktif.tahun|default:'N/A' }})</h5></div>
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    <!-- FIXED: Correct 'if' check -->
+                    {% if chart_status_labels %}
+                        <canvas id="chartStatusDistribution"
+                                data-labels="{{ chart_status_labels|safe }}"
+                                data-counts="{{ chart_status_data|safe }}">
+                        </canvas>
+                    {% else %}
+                         <p class="text-muted text-center">Belum ada data status pelatihan di tahun ini.</p>
                     {% endif %}
                 </div>
             </div>
@@ -94,9 +137,9 @@
 </div>
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
-<script src="{% static 'evaluasi/js/graph_evaluasi.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="{% static 'evaluasi/js/graph_evaluasi.js' %}"></script>
 {% endblock scripts %}
 
 {% endblock content %}
-
