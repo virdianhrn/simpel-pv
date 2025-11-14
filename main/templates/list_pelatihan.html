@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} Manajemen Pelatihan {% endblock title %}
+
+{% block navbar %}
+{% with variant='light' %}
+{{ block.super }}
+{% endwith %}
+{% endblock navbar %}
+
+{% block page_header_content %}
+<div class="page-header pt-7 pb-5 bg-white-blue">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div> <h1 class="mb-0">Manajemen Pelatihan</h1>
+                {% if tahun_aktif %}
+                    <p class="text-muted mb-0">Menampilkan data untuk Tahun Anggaran {{ tahun_aktif.tahun }}</p>
+                {% else %}
+                    <p class="text-warning mb-0"> 
+                        <i class="fa fa-exclamation-triangle me-1"></i> Tidak ada Tahun Anggaran yang aktif. 
+                        {% if user.is_admin %}
+                            Silakan atur di <a href="{% url 'konfigurasi:manage_tahun_anggaran' %}" class="link-primary text-decoration-underline fw-bold">halaman konfigurasi</a>.
+                        {% endif %}
+                    </p>
+                {% endif %}
+            </div>
+            
+            {% if user.is_admin and tahun_aktif %} 
+                <a href="{% url 'pelatihan:add' %}" class="btn bg-brand btn-success">
+                    <i class="fa fa-plus me-2"></i> Tambah Pelatihan Baru
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock page_header_content %}
+
+{% block content %}
+<div class="container mt-n5 pb-5">
+    <div class="card mb-4">
+        <div class="card-header pb-0">
+            <h6>Daftar Pelatihan {% if tahun_aktif %}Tahun Anggaran {{ tahun_aktif.tahun }}{% else %}Semua{% endif %}</h6>
+        </div>
+        <div class="card-body px-0 pt-0 pb-2">
+            <div class="table-responsive p-0">
+                <table class="table table-striped align-items-center mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="text-uppercase text-xs font-weight-bolder ps-4">Program Pelatihan / Paket</th> 
+                            <th class="text-center text-uppercase text-xs font-weight-bolder">Kejuruan</th>
+                            {% if user.is_admin %}
+                                <th class="text-center text-uppercase text-xs font-weight-bolder">PIC</th>
+                            {% endif %}
+                            <!-- NEW COLUMN -->
+                            <th class="text-center text-uppercase text-xs font-weight-bolder">Status</th>
+                            <!-- COMBINED COLUMN -->
+                            <th class="text-center text-uppercase text-xs font-weight-bolder">Periode Rencana</th>
+                            <!-- 'Rencana Tgl Selesai' REMOVED -->
+                            <th class="text-center text-uppercase text-xs font-weight-bolder">Progress Laporan</th>
+                            <th class="text-center text-uppercase text-xs font-weight-bolder">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pelatihan in pelatihan_list %}
+                        <tr>
+                            <td class="ps-4 align-middle">
+                                <p class="text-sm font-weight-bold mb-0">
+                                    <a href="{% url 'pelatihan:detail' pelatihan.id %}"
+                                       class="d-inline-block text-truncate" 
+                                       style="max-width: 250px;"
+                                       data-bs-toggle="tooltip" 
+                                       data-bs-placement="top" 
+                                       title="{{ pelatihan.judul }}">
+                                        {{ pelatihan.judul }}
+                                    </a>
+                                </p>
+                                <p class="text-xs text-secondary mb-0">Paket Ke-{{ pelatihan.paket_ke }}</p> 
+                            </td>
+                            <td class="align-middle">
+                                <p class="text-center text-sm font-weight-bold mb-0">{{ pelatihan.kejuruan }}</p>
+                            </td>
+                            {% if user.is_admin %}
+                            <td class="align-middle pt-3">
+                                <p class="text-center text-sm font-weight-bold mb-0 d-inline-block text-truncate" 
+                                   style="max-width: 150px;"
+                                   data-bs-toggle="tooltip" 
+                                   data-bs-placement="top" 
+                                   title="{{ pelatihan.penyelenggara }}">
+                                    {{ pelatihan.penyelenggara }}
+                                </p>
+                            </td>
+                            {% endif %}
+                            
+                            <!-- NEW STATUS CELL -->
+                            <td class="align-middle text-sm text-center">
+                                {% if pelatihan.is_sedang_berjalan %}
+                                    <span class="badge badge-sm rounded-pill bg-info">{{ pelatihan.status }}</span>
+                                {% elif pelatihan.is_selesai %}
+                                    <span class="badge badge-sm rounded-pill bg-success">{{ pelatihan.status }}</span>
+                                {% else %}
+                                    <span class="badge badge-sm rounded-pill bg-secondary">{{ pelatihan.status }}</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- COMBINED DATE CELL -->
+                            <td class="align-middle text-center" style="line-height: 1.2;">
+                                <span class="text-secondary text-sm font-weight-bold">
+                                    {{ pelatihan.tanggal_mulai_rencana|date:"d M Y" }}
+                                    <br> - <br>
+                                    {{ pelatihan.tanggal_selesai_rencana|date:"d M Y" }}
+                                </span>
+                            </td>
+
+                            <!-- 'Rencana Tgl Selesai' CELL REMOVED -->
+
+                            <!-- UPDATED PROGRESS CELL (STACKED BARS) -->
+                            <td class="align-middle">
+                                <div class="pt-n1"> <!-- Added padding-top to align with text -->
+                                    <span class="text-xs font-weight-bold">Upload: {{ pelatihan.progress_upload }}%</span>
+                                    <div class="progress w-100 mb-1" style="height: 8px;">
+                                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ pelatihan.progress_upload }}%;"
+                                             aria-valuenow="{{ pelatihan.progress_upload }}"
+                                             aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                                <div class="pt-1"> <!-- Added padding-top to align with text -->
+                                    <span class="text-xs font-weight-bold">Verifikasi: {{ pelatihan.progress_laporan }}%</span>
+                                    <div class="progress w-100" style="height: 8px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ pelatihan.progress_laporan }}%;"
+                                             aria-valuenow="{{ pelatihan.progress_laporan }}"
+                                             aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td class="align-middle text-center pt-4">
+                                <a href="{% url 'pelatihan:detail' pelatihan.id %}" class="btn btn-sm btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat Detail">
+                                    <i class="fa fa-eye"></i>
+                                </a>
+                                <a href="{% url 'pelatihan:edit' pelatihan.id %}" class="btn btn-sm btn-warning" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Pelatihan">
+                                    <i class="fa fa-edit"></i>
+                                </a>
+                                {% if user.is_admin %}
+                                <button type="button" class="btn btn-sm btn-danger"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteConfirmationModal"
+                                        data-pelatihan-name="{{ pelatihan.judul }}"
+                                        data-pelatihan-delete-url="{% url 'pelatihan:delete' pelatihan.id %}">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+
+                        {# Pesan jika list kosong #}
+                        {% if not pelatihan_list %}
+                        <tr>
+                            <!-- Colspan is the same (Added 1, Removed 1) -->
+                            <td colspan="{% if user.is_admin %}7{% else %}6{% endif %}" class="text-center py-4 text-muted">Belum ada data pelatihan.</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Modal Konfirmasi Hapus Pelatihan #}
+<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Konfirmasi Hapus</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Apakah Anda yakin ingin menghapus pelatihan: <strong id="pelatihanNameToDelete"></strong>?</p>
+                <p class="text-danger small">Tindakan ini tidak dapat diurungkan.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <form id="deleteForm" method="POST" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Ya, Hapus</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %} 
+    {{ block.super }}
+    <script src="{% static 'pelatihan/js/delete_confirm.js' %}"></script>
+    <script>
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    </script>
+{% endblock scripts %}
+
+{% endblock content %}

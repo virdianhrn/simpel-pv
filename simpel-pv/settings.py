@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'main',
     'authentication',
     'konfigurasi',
-    'evaluasi'
 ]
 
 MIDDLEWARE = [

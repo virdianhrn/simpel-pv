@@ -101,7 +101,7 @@ def add(request):
         if form.is_valid():
             pelatihan = form.save()
             messages.success(request, f"Pelatihan '{pelatihan.judul}' berhasil ditambahkan.")
-            return redirect('main:dashboard')
+            return redirect('main:list')
     else:
         form = PelatihanForm(user=request.user)
 
@@ -114,7 +114,7 @@ def add(request):
 def edit(request, pelatihan_id):
     pelatihan = get_object_or_404(Pelatihan, id=pelatihan_id)
 
-    referer_url = request.META.get('HTTP_REFERER', reverse('main:dashboard'))
+    referer_url = request.META.get('HTTP_REFERER', reverse('main:list'))
 
     if request.method == 'POST':
         form = PelatihanForm(request.POST, instance=pelatihan, user=request.user)
@@ -170,9 +170,9 @@ def delete(request, pelatihan_id):
         pelatihan_title = pelatihan.judul
         pelatihan.delete()
         messages.success(request, f"Pelatihan '{pelatihan_title}' berhasil dihapus.")
-        return redirect('main:dashboard')
+        return redirect('main:list')
     
-    return redirect('main:dashboard')
+    return redirect('main:list')
 
 # --- Fungsi Helper: Untuk mengecek PDF kosong ---
 def _is_pdf_blank(file_object) -> bool:
