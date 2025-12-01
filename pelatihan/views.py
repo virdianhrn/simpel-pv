@@ -18,9 +18,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views import View
 from django.contrib.staticfiles import finders
-from PyPDF2 import PdfMerger, PdfReader, PdfWriter
+from pypdf import PdfReader, PdfWriter
 from docxtpl import DocxTemplate
-from PyPDF2.errors import PdfReadError
+from pypdf.errors import PdfReadError
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
@@ -648,7 +648,7 @@ def generate_full_report_pdf_view(request, pelatihan_id):
         
         # --- TAHAP 6: GABUNGKAN SEMUA BAGIAN DARI MEMORI ---
         print(f"Mulai Tahap 6: Menggabungkan {len(pdf_pieces_to_merge)} bagian PDF...")
-        final_merger = PdfMerger() # Gunakan PdfMerger untuk .append()
+        final_merger = PdfWriter()
         
         for i, pdf_buffer in enumerate(pdf_pieces_to_merge):
             try:
